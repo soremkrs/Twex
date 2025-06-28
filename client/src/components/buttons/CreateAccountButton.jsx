@@ -17,9 +17,9 @@ const CustomButton = styled(Button)({
   },
 });
 
-function CreateAccountButton() {
+function CreateAccountButton(props) {
   return (
-    <CustomButton variant="contained">
+    <CustomButton onClick={props.onClick} variant="contained">
       Create account
     </CustomButton>
   );

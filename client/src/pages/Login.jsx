@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import OAuthButton from "../components/buttons/OAuthButton";
 import DividerCenter from "../components/divider/DividerCenter";
 import CreateAccountButton from "../components/buttons/CreateAccountButton";
@@ -8,6 +9,14 @@ import Footer from "../components/footer/Footer"
 import "../styles/Login.css";
 
 function Login() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const openCreateAccountModal = () => {
+        navigate("/create-account", {
+        state: { backgroundLocation: location },
+        });
+    };
     return (
         <div className="page">
             <main className="container">
@@ -19,7 +28,7 @@ function Login() {
                         <h3>Create an account</h3>
                         <OAuthButton />
                         <DividerCenter />
-                        <CreateAccountButton />
+                        <CreateAccountButton onClick={openCreateAccountModal}/>
                         <h4>Already have an account?</h4>
                         <SignInButton />
                     </div>

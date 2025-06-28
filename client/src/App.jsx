@@ -1,12 +1,13 @@
 import React from "react";
-import Login from "./pages/Login"
+import { BrowserRouter } from 'react-router-dom';
+import PagesRoutes from "./components/PagesRoutes";
 import "./styles/App.css"
 
 function App() {
     return (
-        <div className="app-container">
-            <Login />
-        </div>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
+			<PagesRoutes />
+		</BrowserRouter>
     );
 }
 
