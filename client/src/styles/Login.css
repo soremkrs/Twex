@@ -1,0 +1,42 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 200px;
+}
+
+.login-left img {
+    object-fit: contain;
+    height: 450px;
+}
+
+.login-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 450px;
+}
+
+.login-right h3 {
+    font-size: 1.8rem;
+    margin: 0 0 40px 0;
+}
+
+.login-right h4 {
+    margin: 60px 0 20px 0;
+}
