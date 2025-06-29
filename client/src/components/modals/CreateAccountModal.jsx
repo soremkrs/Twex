@@ -14,6 +14,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
 import TXLogo from "../../assets/TXLogo.svg";
+import LoadingModal from "./LoadingModal";
 
 // Styled Components
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -116,6 +117,8 @@ function CreateAccountModal() {
     confirmPassword: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   // Handle form input
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -130,9 +133,9 @@ function CreateAccountModal() {
       alert("Passwords do not match");
       return;
     }
-
+    setLoading(true);
     try {
-      const response = await axios.post("/api/auth/signup", {
+      const response = await axios.post("http://localhost:3000/api/auth/signup", {
         username: formData.username,
         email: formData.email,
         password: formData.password,
@@ -140,9 +143,12 @@ function CreateAccountModal() {
 
       // Optional: Save token or user info from response
       // localStorage.setItem("token", response.data.token);
+      console.log("Signup success:", response.data);
+
+      const user = response.data.user;
 
       navigate("/create-profile", {
-        state: { backgroundLocation: location },
+        state: { user },
       });
     } catch (error) {
       if (error.response) {
@@ -151,6 +157,8 @@ function CreateAccountModal() {
         alert("Network error");
         console.error(error);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -228,13 +236,16 @@ function CreateAccountModal() {
           fullWidth
         />
       </StyledDialogContent>
-
+      {formData.confirmPassword && formData.confirmPassword !== formData.password && (
+        <Typography variant="subtitle1" sx={{ marginTop: 3, color: "red", textAlign: "center" }}> Password doesn't match! </Typography>
+      )}
       <StyledDialogActions>
         <NextButton onClick={handleSubmit} disabled={!isFormValid}>
           Next
         </NextButton>
       </StyledDialogActions>
-    </StyledDialog>
+      <LoadingModal Open={loading} Message="Creating your account..."/>
+    </StyledDialog> 
   );
 }
 

@@ -23,7 +23,7 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     boxShadow: theme.shadows[5],
     padding: theme.spacing(2),
     width: "500px",
-    height: "500px",
+    height: "600px",
   },
   "& .MuiBackdrop-root": {
     backgroundColor: "rgba(71, 71, 71, 0.75)",
@@ -80,7 +80,7 @@ function OAuthModal() {
 
   const handleGoogleAuth = () => {
     // Initiate the real Google OAuth flow
-    window.location.href = "/api/auth/google"; // Change this to your actual endpoint
+    window.location.href = "http://localhost:3000/api/auth/google"; // Change this to your actual endpoint
   };
 
   return (

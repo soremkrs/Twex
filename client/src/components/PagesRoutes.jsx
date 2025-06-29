@@ -38,6 +38,7 @@ function PagesRoutes() {
       {state?.backgroundLocation && (
         <Routes>
           <Route path="/create-account" element={<CreateAccountModal />} />
+          <Route path="/create-profile" element={<CreateProfileModal />} />
           <Route path="/sign-in" element={<SignInModal />} />
           <Route path="/google-sign-in" element={<OAuthModal />} />
         </Routes>

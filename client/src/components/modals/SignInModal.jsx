@@ -16,6 +16,7 @@ import { styled } from "@mui/material/styles";
 import TXLogo from "../../assets/TXLogo.svg";
 import OAuthButton from "../buttons/OAuthButton";
 import DividerCenter from "../divider/DividerCenter";
+import LoadingModal from "./LoadingModal";
 
 // Styled Components
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -116,6 +117,8 @@ function CreateAccountModal() {
     password: "",
   });
 
+    const [loading, setLoading] = useState(false);
+
   // Handle form input
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -126,8 +129,9 @@ function CreateAccountModal() {
   };
 
   const handleSubmit = async () => {
+    setLoading(true);
     try {
-      const response = await axios.post("/api/auth/signin", {
+      const response = await axios.post("http://localhost:3000/api/auth/signin", {
         username: formData.username,
         password: formData.password,
       });
@@ -145,6 +149,8 @@ function CreateAccountModal() {
         alert("Network error");
         console.error(error);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -169,9 +175,6 @@ function CreateAccountModal() {
         </Logo>
         <Box width={40} /> {/* Spacer for symmetry */}
       </Header>
-
-      
-
       <StyledDialogContent>
         <Typography variant="h6" fontWeight={700} marginBottom={3}>
           Sign in to TweX
@@ -212,7 +215,6 @@ function CreateAccountModal() {
           fullWidth
         />
       </StyledDialogContent>
-
       <StyledDialogActions>
         <NextButton onClick={handleSubmit} disabled={!isFormValid}>
           Next
