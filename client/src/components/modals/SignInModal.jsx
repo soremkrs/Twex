@@ -14,6 +14,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
 import { styled } from "@mui/material/styles";
 import TXLogo from "../../assets/TXLogo.svg";
+import OAuthButton from "../buttons/OAuthButton";
+import DividerCenter from "../divider/DividerCenter";
 
 // Styled Components
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -111,9 +113,7 @@ function CreateAccountModal() {
   // Form state
   const [formData, setFormData] = useState({
     username: "",
-    email: "",
     password: "",
-    confirmPassword: "",
   });
 
   // Handle form input
@@ -126,27 +126,21 @@ function CreateAccountModal() {
   };
 
   const handleSubmit = async () => {
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
-
     try {
-      const response = await axios.post("/api/auth/signup", {
+      const response = await axios.post("/api/auth/signin", {
         username: formData.username,
-        email: formData.email,
         password: formData.password,
       });
 
       // Optional: Save token or user info from response
       // localStorage.setItem("token", response.data.token);
 
-      navigate("/create-profile", {
+      navigate("/home", {
         state: { backgroundLocation: location },
       });
     } catch (error) {
       if (error.response) {
-        alert(error.response.data.message || "Signup failed");
+        alert(error.response.data.message || "Sign in failed");
       } else {
         alert("Network error");
         console.error(error);
@@ -154,12 +148,14 @@ function CreateAccountModal() {
     }
   };
 
+  const handleGoogleAuth = () => {
+    // Initiate the real Google OAuth flow
+    window.location.href = "/api/auth/google"; // Change this to your actual endpoint
+  };
+
   const isFormValid =
     formData.username &&
-    formData.email &&
     formData.password &&
-    formData.confirmPassword &&
-    formData.password === formData.confirmPassword &&
     formData.username.length <= 20;
 
   return (
@@ -174,11 +170,14 @@ function CreateAccountModal() {
         <Box width={40} /> {/* Spacer for symmetry */}
       </Header>
 
+      
+
       <StyledDialogContent>
         <Typography variant="h6" fontWeight={700} marginBottom={3}>
-          Create your account
+          Sign in to TweX
         </Typography>
-
+        <OAuthButton text="Sign in with Google" onClick={handleGoogleAuth} />
+        <DividerCenter />
         <StyledTextField
           label="Username"
           name="username"
@@ -205,25 +204,10 @@ function CreateAccountModal() {
           }}
         />
         <StyledTextField
-          label="Email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          fullWidth
-        />
-        <StyledTextField
           label="Password"
           name="password"
           type="password"
           value={formData.password}
-          onChange={handleChange}
-          fullWidth
-        />
-        <StyledTextField
-          label="Confirm Password"
-          name="confirmPassword"
-          type="password"
-          value={formData.confirmPassword}
           onChange={handleChange}
           fullWidth
         />

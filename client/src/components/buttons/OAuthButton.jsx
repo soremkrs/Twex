@@ -18,11 +18,10 @@ const CustomButton = styled(Button)({
   },
 });
 
-function OAuthButton() {
+function OAuthButton(props) {
   return (
-    <CustomButton variant="contained">
-      <img src={GoogleIcon} alt="Google icon" width="25" height="25" /> Sign up
-      with Google
+    <CustomButton onClick={props.onClick} variant="contained">
+      <img src={GoogleIcon} alt="Google icon" width="25" height="25" /> {props.text}
     </CustomButton>
   );
 }

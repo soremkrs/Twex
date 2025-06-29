@@ -14,9 +14,24 @@ function Login() {
 
     const openCreateAccountModal = () => {
         navigate("/create-account", {
-        state: { backgroundLocation: location },
+            state: { backgroundLocation: location },
         });
     };
+
+    const openSignInModal = () => {
+        navigate("/sign-in", {
+            state: { backgroundLocation: location },
+        });
+    };
+
+    const openGoogleAuth = () => {
+        navigate("/google-sign-in", {
+            state: { backgroundLocation: location },
+        });
+    };
+
+
+
     return (
         <div className="page">
             <main className="container">
@@ -26,11 +41,11 @@ function Login() {
                     </div>
                     <div className="login-right">
                         <h3>Create an account</h3>
-                        <OAuthButton />
+                        <OAuthButton text="Sign up with Google" onClick={openGoogleAuth}/>
                         <DividerCenter />
                         <CreateAccountButton onClick={openCreateAccountModal}/>
                         <h4>Already have an account?</h4>
-                        <SignInButton />
+                        <SignInButton onClick={openSignInModal}/>
                     </div>
                 </div>
             </main>
