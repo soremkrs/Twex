@@ -31,17 +31,14 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 const Header = styled(Box)({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "6px 16px 0",
-  marginBottom: "30px",
+  position: "absolute",
 });
 
 const Logo = styled("div")({
   flex: 1,
   display: "flex",
   justifyContent: "center",
+  marginBottom: "20px",
 });
 
 const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
@@ -89,11 +86,10 @@ function OAuthModal() {
         <IconButton onClick={handleClose} sx={{ color: "#fff", padding: "0" }}>
           <CloseIcon />
         </IconButton>
-        <Logo>
-          <img src={TXLogo} alt="Tx Logo" height={40} />
-        </Logo>
-        <Box width={40} /> {/* Spacer for symmetry */}
       </Header>
+      <Logo>
+        <img src={TXLogo} alt="Tx Logo" height={40} />
+      </Logo>
 
       <StyledDialogContent>
         <Typography variant="h6" fontWeight={700} marginBottom={3}>

@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import {
-  Dialog, DialogContent, DialogActions,
-  IconButton, TextField, Button, Box, Typography,
-  MenuItem
+  Dialog,
+  DialogContent,
+  DialogActions,
+  IconButton,
+  TextField,
+  Button,
+  Box,
+  Typography,
+  MenuItem,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
@@ -11,18 +17,17 @@ import axios from "axios";
 import TXLogo from "../../assets/TXLogo.svg";
 import LoadingModal from "./LoadingModal";
 
-// Replace with your real avatar paths
 const availableAvatars = [
-  "../../assets/avatars/1.png",
-  "../../assets/avatars/2.png",
-  "../../assets/avatars/3.png",
-  "../../assets/avatars/4.png",
-  "../../assets/avatars/5.png",
-  "../../assets/avatars/6.png",
-  "../../assets/avatars/7.png",
-  "../../assets/avatars/8.png",
-  "../../assets/avatars/9.png",
-  "../../assets/avatars/10.png",
+  "/avatars/1.png",
+  "/avatars/2.png",
+  "/avatars/3.png",
+  "/avatars/4.png",
+  "/avatars/5.png",
+  "/avatars/6.png",
+  "/avatars/7.png",
+  "/avatars/8.png",
+  "/avatars/9.png",
+  "/avatars/10.png",
 ];
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -32,8 +37,8 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     color: "#fff",
     boxShadow: theme.shadows[5],
     padding: theme.spacing(2),
-    width: "500px",
-    height: "600px",
+    width: "800px",
+    height: "800px",
   },
   "& .MuiBackdrop-root": {
     backgroundColor: "rgba(71, 71, 71, 0.75)",
@@ -41,17 +46,14 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 const Header = styled(Box)({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "6px 16px 0",
-  marginBottom: "30px",
+  position: "absolute",
 });
 
 const Logo = styled("div")({
   flex: 1,
   display: "flex",
   justifyContent: "center",
+  marginBottom: "20px",
 });
 
 const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
@@ -59,7 +61,7 @@ const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
   flexDirection: "column",
   gap: theme.spacing(2),
   paddingTop: 0,
-  width: "350px",
+  width: "500px",
   margin: "auto",
 }));
 
@@ -87,6 +89,9 @@ const StyledTextField = styled((props) => <TextField {...props} />)(
     "& .MuiInputLabel-root.Mui-focused": {
       color: "#1d9bf0",
     },
+    "& .MuiSelect-icon": {
+      color: "#fff",
+    },
   })
 );
 
@@ -101,7 +106,7 @@ const NextButton = styled(Button)(({ theme }) => ({
   fontWeight: 600,
   textTransform: "none",
   borderRadius: 30,
-  width: "300px",
+  width: "450px",
   padding: "5px 0px",
   "&:hover": {
     backgroundColor: "#1a8cd8",
@@ -111,7 +116,7 @@ const NextButton = styled(Button)(({ theme }) => ({
 function CreateProfileModal() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = location.state || {}; // Get user data from previous step
+  const { user } = location.state || {};
 
   const [formData, setFormData] = useState({
     realName: "",
@@ -119,7 +124,9 @@ function CreateProfileModal() {
     dateOfBirth: "",
     bio: "",
   });
+
   const [loading, setLoading] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(availableAvatars[0]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -152,32 +159,60 @@ function CreateProfileModal() {
   return (
     <StyledDialog open>
       <Header>
-        <IconButton onClick={() => navigate(-1)} sx={{ color: "#fff", padding: "0" }}>
+        <IconButton
+          onClick={() => navigate(-1)}
+          sx={{ color: "#fff", padding: "0" }}
+        >
           <CloseIcon />
         </IconButton>
-        <Logo>
-          <img src={TXLogo} alt="Tx Logo" height={40} />
-        </Logo>
-        <Box width={40} />
       </Header>
+      <Logo>
+        <img src={TXLogo} alt="Tx Logo" height={40} />
+      </Logo>
+
+      {/* Avatar Preview */}
+      <Box display="flex" justifyContent="center" mt={1} mb={2}>
+        <Box
+          component="img"
+          src={selectedAvatar}
+          alt="Selected Avatar"
+          sx={{
+            width: 100,
+            height: 100,
+            borderRadius: "50%",
+            border: "2px solid #1d9bf0",
+            objectFit: "cover",
+          }}
+        />
+      </Box>
 
       <StyledDialogContent>
-        <Typography variant="h6" fontWeight={700} marginBottom={3}>
+        <Typography variant="h6" fontWeight={700} marginBottom={2}>
           Complete your profile
         </Typography>
 
         <StyledTextField
           label="Name"
           name="realName"
+          id="realName"
           value={formData.realName}
           onChange={handleChange}
           inputProps={{ maxLength: 20 }}
           fullWidth
           InputProps={{
             endAdornment: (
-              <Typography variant="caption" sx={{ color: "#888", ml: 1 }}>
-                {formData.realName.length} / 20
-              </Typography>
+              <Box
+                sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    color: "#888",
+                    ml: 1,
+                }}
+              >
+                <Typography variant="caption">
+                  {formData.realName.length}/20
+                </Typography>
+              </Box>
             ),
           }}
         />
@@ -186,15 +221,29 @@ function CreateProfileModal() {
           select
           label="Avatar"
           name="avatar"
+          id="avatar-select"
           value={formData.avatar}
-          onChange={handleChange}
+          onChange={(e) => {
+            const avatarUrl = e.target.value;
+            setFormData((prev) => ({ ...prev, avatar: avatarUrl }));
+            setSelectedAvatar(avatarUrl); // update preview
+          }}
+          slotProps={{
+            input: { id: "avatar-select-one" },
+            inputLabel: { htmlFor: "avatar-select-one" },
+          }}
           fullWidth
         >
-          {availableAvatars.map((url) => (
-            <MenuItem key={url} value={url}>
+          {availableAvatars.map((url, index) => (
+            <MenuItem key={index} value={url}>
               <Box display="flex" alignItems="center" gap={2}>
-                <img src={url} alt="avatar" height={30} style={{ borderRadius: "50%" }} />
-                <span>{url.split("/").pop()}</span>
+                <img
+                  src={url}
+                  alt="avatar"
+                  height={30}
+                  style={{ borderRadius: "50%" }}
+                />
+                <div>{url.split("/").pop().replace(".png", "")}</div>
               </Box>
             </MenuItem>
           ))}
@@ -203,6 +252,7 @@ function CreateProfileModal() {
         <StyledTextField
           label="Date of Birth"
           name="dateOfBirth"
+          id="dateOfBirth"
           type="date"
           InputLabelProps={{ shrink: true }}
           value={formData.dateOfBirth}
@@ -213,17 +263,26 @@ function CreateProfileModal() {
         <StyledTextField
           label="Bio"
           name="bio"
+          id="bio"
           multiline
-          rows={3}
+          rows={7}
           inputProps={{ maxLength: 250 }}
           value={formData.bio}
           onChange={handleChange}
           fullWidth
           InputProps={{
             endAdornment: (
-              <Typography variant="caption" sx={{ color: "#888", ml: 1 }}>
-                {formData.bio.length} / 250
-              </Typography>
+              <Box
+                sx={{
+                    display: "flex",
+                    color: "#888",
+                    ml: 1,
+                }}
+              >
+                <Typography variant="caption">
+                  {formData.bio.length}/250
+                </Typography>
+              </Box>
             ),
           }}
         />
