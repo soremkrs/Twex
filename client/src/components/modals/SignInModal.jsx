@@ -11,12 +11,13 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosConfig";
 import { styled } from "@mui/material/styles";
 import TXLogo from "../../assets/TXLogo.svg";
 import OAuthButton from "../buttons/OAuthButton";
 import DividerCenter from "../divider/DividerCenter";
 import LoadingModal from "./LoadingModal";
+import { useAuth } from "../../contexts/useAuthContext";
 
 // Styled Components
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -107,6 +108,7 @@ const NextButton = styled(Button)(({ theme }) => ({
 
 function CreateAccountModal() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -114,7 +116,9 @@ function CreateAccountModal() {
     password: "",
   });
 
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [hide, setHide] = useState(false);
 
   // Handle form input
   const handleChange = (e) => {
@@ -128,19 +132,22 @@ function CreateAccountModal() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/signin", {
+      const response = await axiosInstance.post("/auth/signin", {
         username: formData.username,
         password: formData.password,
       });
 
       // Optional: Save token or user info from response
       // localStorage.setItem("token", response.data.token);
-
+      const user = response.data.user;
+      setHide(true);
+      setUser(user);
       navigate("/home", {
-        state: { backgroundLocation: location },
+        state: { user },
       });
     } catch (error) {
       if (error.response) {
+        console.error(error.response.data);
         alert(error.response.data.message || "Sign in failed");
       } else {
         alert("Network error");
@@ -153,7 +160,7 @@ function CreateAccountModal() {
 
   const handleGoogleAuth = () => {
     // Initiate the real Google OAuth flow
-    window.location.href = "/api/auth/google"; // Change this to your actual endpoint
+    window.location.href = "http://localhost:3000/api/auth/google"; // Change this to your actual endpoint
   };
 
   const isFormValid =
@@ -162,7 +169,7 @@ function CreateAccountModal() {
     formData.username.length <= 20;
 
   return (
-    <StyledDialog open onClose={handleClose}>
+    <StyledDialog open aria-hidden={hide}>
       <Header>
         <IconButton onClick={handleClose} sx={{ color: "#fff", padding: "0" }}>
           <CloseIcon />
@@ -180,6 +187,8 @@ function CreateAccountModal() {
         <StyledTextField
           label="Username"
           name="username"
+          id="username"
+          autoComplete="username"
           value={formData.username}
           onChange={handleChange}
           inputProps={{ maxLength: 20 }}
@@ -205,6 +214,8 @@ function CreateAccountModal() {
         <StyledTextField
           label="Password"
           name="password"
+          id="password"
+          autoComplete="current-password"
           type="password"
           value={formData.password}
           onChange={handleChange}
@@ -216,6 +227,7 @@ function CreateAccountModal() {
           Next
         </NextButton>
       </StyledDialogActions>
+      <LoadingModal Open={loading} Message="Entering..." />
     </StyledDialog>
   );
 }

@@ -81,7 +81,7 @@ function OAuthModal() {
   };
 
   return (
-    <StyledDialog open onClose={handleClose}>
+    <StyledDialog open>
       <Header>
         <IconButton onClick={handleClose} sx={{ color: "#fff", padding: "0" }}>
           <CloseIcon />

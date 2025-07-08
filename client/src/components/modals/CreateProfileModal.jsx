@@ -13,9 +13,10 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosConfig";
 import TXLogo from "../../assets/TXLogo.svg";
 import LoadingModal from "./LoadingModal";
+import { useAuth } from "../../contexts/useAuthContext";
 
 const availableAvatars = [
   "/avatars/1.png",
@@ -111,12 +112,19 @@ const NextButton = styled(Button)(({ theme }) => ({
   "&:hover": {
     backgroundColor: "#1a8cd8",
   },
+  "&.Mui-disabled": {
+    backgroundColor: "#EEEEEE", 
+    color: "black",           
+    cursor: "not-allowed",   
+    opacity: 0.6,            
+  },
 }));
 
 function CreateProfileModal() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = location.state || {};
+  const { setUser } = useAuth();
 
   const [formData, setFormData] = useState({
     realName: "",
@@ -127,6 +135,8 @@ function CreateProfileModal() {
 
   const [loading, setLoading] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(availableAvatars[0]);
+
+  const [hide, setHide] = useState(false);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -140,14 +150,19 @@ function CreateProfileModal() {
 
     setLoading(true);
     try {
-      await axios.post(`http://localhost:3000/api/profile/${user.id}`, {
+      await axiosInstance.post(`/profile/${user.id}`, {
         real_name: formData.realName,
         avatar_url: formData.avatar,
         date_of_birth: formData.dateOfBirth,
         bio: formData.bio,
       });
 
-      navigate("/home");
+      setHide(true);
+      setUser(user);
+      navigate("/home", {
+        state: { user },
+      });
+
     } catch (err) {
       alert("Failed to save profile");
       console.error(err);
@@ -156,8 +171,14 @@ function CreateProfileModal() {
     }
   };
 
+  const isFormValid =
+    formData.realName &&
+    formData.dateOfBirth &&
+    formData.bio &&
+    formData.realName.length <= 20;
+
   return (
-    <StyledDialog open>
+    <StyledDialog open aria-hidden={hide}>
       <Header>
         <IconButton
           onClick={() => navigate(-1)}
@@ -195,6 +216,7 @@ function CreateProfileModal() {
           label="Name"
           name="realName"
           id="realName"
+          autoComplete="given-name"
           value={formData.realName}
           onChange={handleChange}
           inputProps={{ maxLength: 20 }}
@@ -221,7 +243,8 @@ function CreateProfileModal() {
           select
           label="Avatar"
           name="avatar"
-          id="avatar-select"
+          id="avatar"
+          autoComplete="off"
           value={formData.avatar}
           onChange={(e) => {
             const avatarUrl = e.target.value;
@@ -253,6 +276,7 @@ function CreateProfileModal() {
           label="Date of Birth"
           name="dateOfBirth"
           id="dateOfBirth"
+          autoComplete="off"
           type="date"
           InputLabelProps={{ shrink: true }}
           value={formData.dateOfBirth}
@@ -264,6 +288,7 @@ function CreateProfileModal() {
           label="Bio"
           name="bio"
           id="bio"
+          autoComplete="off"
           multiline
           rows={7}
           inputProps={{ maxLength: 250 }}
@@ -289,7 +314,7 @@ function CreateProfileModal() {
       </StyledDialogContent>
 
       <StyledDialogActions>
-        <NextButton onClick={handleSubmit} disabled={!formData.realName}>
+        <NextButton onClick={handleSubmit} disabled={!isFormValid}>
           Finish
         </NextButton>
       </StyledDialogActions>

@@ -104,8 +104,7 @@ const NextButton = styled(Button)(({ theme }) => ({
 }));
 
 function CreateAccountModal() {
-  const navigate = useNavigate();
-
+  const navigate = useNavigate();  
   // Form state
   const [formData, setFormData] = useState({
     username: "",
@@ -115,6 +114,8 @@ function CreateAccountModal() {
   });
 
   const [loading, setLoading] = useState(false);
+
+  const [hide, setHide] = useState(false);
 
   // Handle form input
   const handleChange = (e) => {
@@ -140,12 +141,11 @@ function CreateAccountModal() {
 
       // Optional: Save token or user info from response
       // localStorage.setItem("token", response.data.token);
-      console.log("Signup success:", response.data);
 
       const user = response.data.user;
-
+      setHide(true);
       navigate("/create-profile", {
-        state: { user },
+        state: { user, backgroundLocation: { pathname: "/" }, fromSignUp: true, },
       });
     } catch (error) {
       if (error.response) {
@@ -168,7 +168,7 @@ function CreateAccountModal() {
     formData.username.length <= 20;
 
   return (
-    <StyledDialog open onClose={handleClose}>
+    <StyledDialog open aria-hidden={hide}>
       <Header>
         <IconButton onClick={handleClose} sx={{ color: "#fff", padding: "0" }}>
           <CloseIcon />
@@ -186,6 +186,8 @@ function CreateAccountModal() {
         <StyledTextField
           label="Username"
           name="username"
+          id="username"
+          autoComplete="username"
           value={formData.username}
           onChange={handleChange}
           inputProps={{ maxLength: 20 }}
@@ -210,6 +212,8 @@ function CreateAccountModal() {
         <StyledTextField
           label="Email"
           name="email"
+          id="email"
+          autoComplete="email"
           value={formData.email}
           onChange={handleChange}
           fullWidth
@@ -217,6 +221,8 @@ function CreateAccountModal() {
         <StyledTextField
           label="Password"
           name="password"
+          id="password"
+          autoComplete="new-password"
           type="password"
           value={formData.password}
           onChange={handleChange}
@@ -225,6 +231,8 @@ function CreateAccountModal() {
         <StyledTextField
           label="Confirm Password"
           name="confirmPassword"
+          id="confirmPassword"
+          autoComplete="new-password"
           type="password"
           value={formData.confirmPassword}
           onChange={handleChange}
