@@ -155,6 +155,29 @@ app.post("/api/profile/:id", async (req, res) => {
   }
 });
 
+app.post("/api/edit/profile/:id", async (req, res) => {
+  const { id } = req.params;
+  const { real_name, avatar_url, date_of_birth, bio } = req.body;
+
+  try {
+    const result = await db.query(
+      `UPDATE users
+       SET real_name = $1,
+           avatar_url = $2,
+           date_of_birth = $3,
+           bio = $4
+       WHERE id = $5
+       RETURNING *, TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth`,
+      [real_name, avatar_url, date_of_birth, bio, id]
+    );
+    
+    res.status(200).json({ user: result.rows[0] });
+  } catch (err) {
+    console.error("Profile update error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 passport.use(
   "local",
   new Strategy(async function verify(username, password, cb) {
@@ -231,7 +254,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (user, done) => {
   try {
-    const result = await db.query("SELECT * FROM users WHERE id = $1", [user.id]);
+    const result = await db.query("SELECT *, TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth FROM users WHERE id = $1", [user.id]);
     done(null, result.rows[0]);
   } catch (err) {
     done(err);

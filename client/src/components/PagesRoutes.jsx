@@ -6,6 +6,7 @@ import CreateProfileModal from "./modals/CreateProfileModal";
 import SignInModal from "./modals/SignInModal";
 import OAuthModal from "./modals/OAuthModal";
 import ProtectedRoute from "./ProtectedRoute";
+import EditProfileModal from "./modals/EditProfileModal";
 
 function PagesRoutes() {
   const location = useLocation();
@@ -40,6 +41,18 @@ function PagesRoutes() {
           }
         />
 
+         <Route
+          path="/edit-profile"
+          element={
+            <ProtectedRoute
+              condition={state?.fromHome === true}
+              redirectTo="/"
+            >
+              <EditProfileModal />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Fallback: render modal full-page when no backgroundLocation */}
         {!backgroundLocation && (
           <Route path="/create-account" element={<CreateAccountModal />} />
@@ -63,6 +76,19 @@ function PagesRoutes() {
             }
           />
         )}
+        {!backgroundLocation && (
+          <Route
+            path="/edit-profile"
+            element={
+              <ProtectedRoute
+                condition={state?.fromHome === true} // Allow only if we came from home page
+                redirectTo="/"
+              >
+                <EditProfileModal />
+              </ProtectedRoute>
+            }
+          />
+        )}
       </Routes>
 
       {/* Modal route if backgroundLocation is set */}
@@ -70,6 +96,7 @@ function PagesRoutes() {
         <Routes>
           <Route path="/create-account" element={<CreateAccountModal />} />
           <Route path="/create-profile" element={<CreateProfileModal />} />
+          <Route path="/edit-profile" element={<EditProfileModal />} />
           <Route path="/sign-in" element={<SignInModal />} />
           <Route path="/google-sign-in" element={<OAuthModal />} />
         </Routes>

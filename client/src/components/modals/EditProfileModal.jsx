@@ -114,22 +114,21 @@ const NextButton = styled(Button)(({ theme }) => ({
     backgroundColor: "#1a8cd8",
   },
   "&.Mui-disabled": {
-    backgroundColor: "#EEEEEE", 
-    color: "black",           
-    cursor: "not-allowed",   
-    opacity: 0.6,            
+    backgroundColor: "#EEEEEE",
+    color: "black",
+    cursor: "not-allowed",
+    opacity: 0.6,
   },
 }));
 
-function CreateProfileModal() {
+function EditProfileModal() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = location.state || {};
-  const { setUser } = useAuth();
+  const { user, setUser } = useAuth();
 
   const [formData, setFormData] = useState({
     realName: "",
-    avatar: availableAvatars[0],
+    avatar: "/avatars/default_avatar.svg",
     dateOfBirth: "",
     bio: "",
   });
@@ -138,6 +137,23 @@ function CreateProfileModal() {
   const [selectedAvatar, setSelectedAvatar] = useState(availableAvatars[0]);
 
   const [hide, setHide] = useState(false);
+
+  // Populate form once user is available
+  React.useEffect(() => {
+    if (user) {
+      setFormData({
+        realName: user.real_name || user.username || "",
+        avatar: user.avatar_url || "/avatars/default_avatar.svg",
+        dateOfBirth: user.date_of_birth || "",
+        bio: user.bio || "",
+      });
+
+      setSelectedAvatar(user.avatar_url || "/avatars/default_avatar.svg");
+    }
+  }, [user]);
+
+  // Prevent render before user is loaded
+  if (!user) return null;
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -151,19 +167,21 @@ function CreateProfileModal() {
 
     setLoading(true);
     try {
-      await axiosInstance.post(`/profile/${user.id}`, {
+      const response = await axiosInstance.post(`/edit/profile/${user.id}`, {
         real_name: formData.realName,
         avatar_url: formData.avatar,
         date_of_birth: formData.dateOfBirth,
         bio: formData.bio,
       });
 
+      const updatedUser = response.data.user;
+
+      setUser(updatedUser);
+
       setHide(true);
-      setUser(user);
       navigate("/home", {
         state: { user },
       });
-
     } catch (err) {
       alert("Failed to save profile");
       console.error(err);
@@ -210,7 +228,7 @@ function CreateProfileModal() {
 
       <StyledDialogContent>
         <Typography variant="h6" fontWeight={700} marginBottom={2}>
-          Complete your profile
+          Edit your profile
         </Typography>
 
         <StyledTextField
@@ -226,10 +244,10 @@ function CreateProfileModal() {
             endAdornment: (
               <Box
                 sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "#888",
-                    ml: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  color: "#888",
+                  ml: 1,
                 }}
               >
                 <Typography variant="caption">
@@ -300,9 +318,9 @@ function CreateProfileModal() {
             endAdornment: (
               <Box
                 sx={{
-                    display: "flex",
-                    color: "#888",
-                    ml: 1,
+                  display: "flex",
+                  color: "#888",
+                  ml: 1,
                 }}
               >
                 <Typography variant="caption">
@@ -316,7 +334,7 @@ function CreateProfileModal() {
 
       <StyledDialogActions>
         <NextButton onClick={handleSubmit} disabled={!isFormValid}>
-          Finish
+          Edit
         </NextButton>
       </StyledDialogActions>
 
@@ -325,4 +343,4 @@ function CreateProfileModal() {
   );
 }
 
-export default CreateProfileModal;
+export default EditProfileModal;

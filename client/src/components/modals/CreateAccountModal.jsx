@@ -139,9 +139,6 @@ function CreateAccountModal() {
         password: formData.password,
       });
 
-      // Optional: Save token or user info from response
-      // localStorage.setItem("token", response.data.token);
-
       const user = response.data.user;
       setHide(true);
       navigate("/create-profile", {
