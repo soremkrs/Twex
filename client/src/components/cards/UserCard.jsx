@@ -54,7 +54,7 @@ function UserCard() {
         <Box
           display="flex"
           alignItems="center"
-          gap={2}
+          gap={1}
           p={2}
           onClick={handleMenuOpen}
           sx={{
@@ -99,7 +99,7 @@ function UserCard() {
               backgroundColor: "#000",
               borderRadius: 2,
               color: "#fff",
-              boxShadow: "0 0 10px rgba(255, 255, 255, 0.26)",
+              boxShadow: "0 0 10px 5px rgba(255, 255, 255, 0.39)",
               minWidth: 220,
               overflow: "visible",
               position: "absolute",
@@ -113,17 +113,17 @@ function UserCard() {
                 backgroundColor: "#000",
                 transform: "translateY(675%) rotate(45deg)",
                 zIndex: 0,
-                boxShadow: "0 0 10px rgba(255, 255, 255, 0.26)",
+                boxShadow: "0 0 10px 5px rgba(255, 255, 255, 0.39)",
               },
               "&::after": {
                 content: '""',
                 position: "absolute",
                 top: 0,
-                left: "calc(50% - 10px)",
-                width: 25,
-                height: 12,
+                left: "calc(50% - 20px)",
+                width: "40px",
+                height: "15px",
                 backgroundColor: "#000",
-                transform: "translateY(620%) rotate(180deg)",
+                transform: "translateY(480%) rotate(180deg)",
                 zIndex: 1,
               },
             },

@@ -7,6 +7,7 @@ import SignInModal from "./modals/SignInModal";
 import OAuthModal from "./modals/OAuthModal";
 import ProtectedRoute from "./ProtectedRoute";
 import EditProfileModal from "./modals/EditProfileModal";
+import CreatePostModal from "./modals/CreatePostModal";
 
 function PagesRoutes() {
   const location = useLocation();
@@ -30,6 +31,42 @@ function PagesRoutes() {
         />
 
         <Route
+          path="/explore"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/bookmarks"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/:username"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/create-profile"
           element={
             <ProtectedRoute
@@ -41,13 +78,22 @@ function PagesRoutes() {
           }
         />
 
-         <Route
-          path="/edit-profile"
+        <Route
+          path="/create-post"
           element={
             <ProtectedRoute
-              condition={state?.fromHome === true}
+              condition={state?.fromSignUp === true}
               redirectTo="/"
             >
+              <CreatePostModal />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/edit-profile"
+          element={
+            <ProtectedRoute condition={state?.fromHome === true} redirectTo="/">
               <EditProfileModal />
             </ProtectedRoute>
           }
@@ -78,6 +124,19 @@ function PagesRoutes() {
         )}
         {!backgroundLocation && (
           <Route
+            path="/create-post"
+            element={
+              <ProtectedRoute
+                condition={state?.fromSignUp === true} // Allow only if we came from signup
+                redirectTo="/"
+              >
+                <CreatePostModal />
+              </ProtectedRoute>
+            }
+          />
+        )}
+        {!backgroundLocation && (
+          <Route
             path="/edit-profile"
             element={
               <ProtectedRoute
@@ -96,6 +155,7 @@ function PagesRoutes() {
         <Routes>
           <Route path="/create-account" element={<CreateAccountModal />} />
           <Route path="/create-profile" element={<CreateProfileModal />} />
+          <Route path="/create-post" element={<CreatePostModal />} />
           <Route path="/edit-profile" element={<EditProfileModal />} />
           <Route path="/sign-in" element={<SignInModal />} />
           <Route path="/google-sign-in" element={<OAuthModal />} />
