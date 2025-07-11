@@ -64,7 +64,7 @@ function LeftSidebar(props) {
   return (
     <Box
       width="240px"
-      p={3}
+      p={2}
       display="flex"
       flexDirection="column"
       justifyContent="space-between"

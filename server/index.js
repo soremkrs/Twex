@@ -8,6 +8,9 @@ import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import env from "dotenv";
 import cors from "cors";
+import { v2 as cloudinary } from "cloudinary";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import multer from "multer";
 
 env.config();
 
@@ -28,8 +31,8 @@ db.connect();
 
 app.use(
   cors({
-    origin: process.env.ORIGIN_URL, 
-    credentials: true,               
+    origin: process.env.ORIGIN_URL,
+    credentials: true,
   })
 );
 
@@ -40,7 +43,7 @@ app.use(
       pool: db, // or use `conObject` instead
       tableName: "user_sessions",
       createTableIfMissing: true, // create the table automatically
-      pruneSessionInterval: 3600 // run cleanup every 60 seconds
+      pruneSessionInterval: 3600, // run cleanup every 60 seconds
     }),
     secret: process.env.SESSION_SECRET,
     resave: false,
@@ -56,6 +59,23 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "twex", // Cloudinary folder
+    allowed_formats: ["jpg", "jpeg", "png", "gif"],
+    transformation: [{ width: 1000, height: 1000, crop: "limit" }],
+  },
+});
+
+const upload = multer({ storage });
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -81,7 +101,10 @@ app.post("/api/auth/logout", (req, res) => {
 });
 
 // Start OAuth with Google
-app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+app.get(
+  "/api/auth/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
 
 app.get(
   "/api/auth/google/twex",
@@ -108,7 +131,9 @@ app.post("/api/auth/signup", async (req, res) => {
     );
 
     if (existing.rows.length > 0) {
-      return res.status(400).json({ message: "Email or username already in use" });
+      return res
+        .status(400)
+        .json({ message: "Email or username already in use" });
     } else {
       // Hash the password
       const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -129,9 +154,8 @@ app.post("/api/auth/signup", async (req, res) => {
 });
 
 app.post("/api/auth/signin", passport.authenticate("local"), (req, res) => {
-    res.status(201).json({ user: req.user });
-  }
-);
+  res.status(201).json({ user: req.user });
+});
 
 app.post("/api/profile/:id", async (req, res) => {
   const { id } = req.params;
@@ -170,10 +194,32 @@ app.post("/api/edit/profile/:id", async (req, res) => {
        RETURNING *, TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth`,
       [real_name, avatar_url, date_of_birth, bio, id]
     );
-    
+
     res.status(200).json({ user: result.rows[0] });
   } catch (err) {
     console.error("Profile update error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.post("/api/create/post", upload.single("image"), async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const { content } = req.body;
+  const imageUrl = req.file?.path || null;
+  const date = new Date().toISOString().split("T")[0];
+
+  try {
+    await db.query(
+      `INSERT INTO tweets (user_id, content, date, image_url) VALUES ($1, $2, $3, $4)`,
+      [req.user.id, content, date, imageUrl]
+    );
+
+    res.status(201).json({ message: "Post created", imageUrl });
+  } catch (err) {
+    console.error("Post creation failed:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -182,9 +228,10 @@ passport.use(
   "local",
   new Strategy(async function verify(username, password, cb) {
     try {
-      const result = await db.query("SELECT * FROM users WHERE username = $1 ", [
-        username,
-      ]);
+      const result = await db.query(
+        "SELECT * FROM users WHERE username = $1 ",
+        [username]
+      );
       if (result.rows.length > 0) {
         const user = result.rows[0];
         const storedHashedPassword = user.password;
@@ -247,14 +294,16 @@ passport.use(
   )
 );
 
-
 passport.serializeUser((user, done) => {
   done(null, user);
 });
 
 passport.deserializeUser(async (user, done) => {
   try {
-    const result = await db.query("SELECT *, TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth FROM users WHERE id = $1", [user.id]);
+    const result = await db.query(
+      "SELECT *, TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth FROM users WHERE id = $1",
+      [user.id]
+    );
     done(null, result.rows[0]);
   } catch (err) {
     done(err);

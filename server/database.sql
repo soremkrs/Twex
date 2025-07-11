@@ -13,7 +13,8 @@ CREATE TABLE tweets (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
-  date DATE NOT NULL
+  date DATE NOT NULL,
+  image_url TEXT
 );
 
 CREATE TABLE likes (

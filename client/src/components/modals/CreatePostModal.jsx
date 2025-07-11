@@ -17,6 +17,7 @@ import { useAuth } from "../../contexts/useAuthContext";
 import LoadingModal from "./LoadingModal";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
+import axiosInstance from "../../utils/axiosConfig";
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiPaper-root": {
@@ -95,9 +96,17 @@ function CreatePostModal() {
 
     setLoading(true);
     try {
-      console.log("Post content:", content);
-      console.log("Attached image:", image);
-      // Upload logic comes here...
+      const formData = new FormData();
+      formData.append("content", content);
+      if (image) {
+        formData.append("image", image);
+      }
+
+      const res = await axiosInstance.post("/create/post", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     } catch (err) {
       alert("Failed to post");
       console.error(err);
