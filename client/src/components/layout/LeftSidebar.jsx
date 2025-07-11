@@ -36,27 +36,27 @@ function LeftSidebar(props) {
   const navItems = [
     {
       label: "Home",
-      icon: <HomeIcon sx={{ fontSize: 30 }}/>,
+      icon: <HomeIcon sx={{ fontSize: 30 }} />,
       onClick: props.onClickHome,
     },
     {
       label: "Explore",
-      icon: <ExploreIcon sx={{ fontSize: 30 }}/>,
+      icon: <ExploreIcon sx={{ fontSize: 30 }} />,
       onClick: props.onClickExplore,
     },
     {
       label: "Notifications",
-      icon: <NotificationsIcon sx={{ fontSize: 30 }}/>,
+      icon: <NotificationsIcon sx={{ fontSize: 30 }} />,
       onClick: props.onClickNotifications,
     },
     {
       label: "Bookmarks",
-      icon: <BookmarkIcon sx={{ fontSize: 30 }}/>,
+      icon: <BookmarkIcon sx={{ fontSize: 30 }} />,
       onClick: props.onClickBookmarks,
     },
     {
       label: "Profile",
-      icon: <PersonIcon sx={{ fontSize: 30 }}/>,
+      icon: <PersonIcon sx={{ fontSize: 30 }} />,
       onClick: props.onClickProfile,
     },
   ];
@@ -69,6 +69,11 @@ function LeftSidebar(props) {
       flexDirection="column"
       justifyContent="space-between"
       height="100vh"
+      sx={{
+        position: "sticky",
+        top: 0,
+        alignSelf: "flex-start",
+      }}
     >
       <Box>
         <Logo>
@@ -78,7 +83,9 @@ function LeftSidebar(props) {
           {navItems.map(({ label, icon, onClick }) => (
             <NavButton key={label} fullWidth onClick={onClick}>
               <Box display="flex" justifyContent="center">
-                <Box mr={2} display="flex" justifyContent="center">{icon}</Box>
+                <Box mr={2} display="flex" justifyContent="center">
+                  {icon}
+                </Box>
                 {label}
               </Box>
             </NavButton>
@@ -86,7 +93,7 @@ function LeftSidebar(props) {
         </Stack>
       </Box>
       <Box display="flex" flexDirection="column" gap={5}>
-        <PostButton onClick={props.onClickPost}/>
+        <PostButton onClick={props.onClickPost} />
         <UserCard />
       </Box>
     </Box>

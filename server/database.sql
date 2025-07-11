@@ -31,10 +31,11 @@ CREATE TABLE follows (
   PRIMARY KEY (follower_id, following_id)
 );
 
-CREATE TABLE comments (
+CREATE TABLE replies (
   id SERIAL PRIMARY KEY,
-  tweet_id INTEGER NOT NULL REFERENCES tweets(id) ON DELETE CASCADE,
-  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  tweet_id INTEGER NOT NULL REFERENCES tweets(id) ON DELETE CASCADE,  
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,   
   content TEXT NOT NULL,
+  image_url TEXT,                                                    
   date DATE NOT NULL
 );

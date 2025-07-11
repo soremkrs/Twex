@@ -69,9 +69,12 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "twex", // Cloudinary folder
+    folder: "twex",
     allowed_formats: ["jpg", "jpeg", "png", "gif"],
-    transformation: [{ width: 1000, height: 1000, crop: "limit" }],
+    transformation: [
+      { width: 1080, height: 1080, crop: "limit" },
+      { quality: "auto", fetch_format: "auto" },
+    ],
   },
 });
 
@@ -98,6 +101,53 @@ app.post("/api/auth/logout", (req, res) => {
       res.status(200).json({ message: "Logged out" });
     });
   });
+});
+
+app.get("/api/posts", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const currentUserId = req.user?.id || null;
+
+    const result = await db.query(
+      `
+      SELECT
+        tweets.id,
+        tweets.content,
+        TO_CHAR(tweets.date, 'DD-MM-YYYY') AS date,
+        tweets.image_url,
+        tweets.user_id,
+        users.username,
+        users.real_name,
+        users.avatar_url,
+        COUNT(DISTINCT likes.user_id) AS total_likes,
+        COUNT(DISTINCT replies.id) AS total_replies,
+        EXISTS (
+          SELECT 1 FROM likes
+          WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
+        ) AS liked_by_current_user
+      FROM tweets
+      JOIN users ON tweets.user_id = users.id
+      LEFT JOIN likes ON likes.tweet_id = tweets.id
+      LEFT JOIN replies ON replies.tweet_id = tweets.id
+      GROUP BY tweets.id, users.id
+      ORDER BY tweets.id DESC
+      LIMIT $2 OFFSET $3
+    `,
+      [currentUserId, limit, offset]
+    );
+
+    res.status(200).json({ posts: result.rows });
+  } catch (err) {
+    console.error("Fetch posts error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 // Start OAuth with Google

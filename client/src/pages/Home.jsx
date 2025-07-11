@@ -47,7 +47,7 @@ function Home() {
         onClickProfile={openProfilePage}
         onClickPost={openPostModal}
       />
-      <MainFeed />
+      <MainFeed currentUserId={user?.id} />
       <RightSidebar />
     </Box>
   );
