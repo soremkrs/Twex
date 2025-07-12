@@ -25,7 +25,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
   borderRadius: 0,
 }));
 
-function PostCard({ post, currentUserId, onDelete }) {
+function PostCard({ post, currentUserId, onDelete, onEdit, onFollow }) {
   const {
     id,
     content,
@@ -35,19 +35,35 @@ function PostCard({ post, currentUserId, onDelete }) {
     real_name,
     avatar_url,
     total_likes,
-    total_comments,
+    total_replies,
     liked_by_current_user,
     user_id,
   } = post;
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    handleMenuClose();
+    onEdit(id); // Pass post ID to parent
+  };
 
   const handleDelete = () => {
     handleMenuClose();
-    onDelete(id);
+    onDelete(id); // Pass post ID to parent
+  };
+
+  const handleFollow = () => {
+    handleMenuClose();
+    onFollow(user_id); // Pass user ID to parent
   };
 
   const isMyPost = user_id === currentUserId;
@@ -80,9 +96,10 @@ function PostCard({ post, currentUserId, onDelete }) {
               }}
             >
               {isMyPost ? (
-                <>
+                [
                   <MenuItem
-                    onClick={handleMenuClose}
+                    key="edit"
+                    onClick={handleEdit}
                     sx={{
                       fontWeight: 500,
                       "&:hover": {
@@ -91,8 +108,9 @@ function PostCard({ post, currentUserId, onDelete }) {
                     }}
                   >
                     Edit
-                  </MenuItem>
+                  </MenuItem>,
                   <MenuItem
+                    key="delete"
                     onClick={handleDelete}
                     sx={{
                       fontWeight: 500,
@@ -102,11 +120,11 @@ function PostCard({ post, currentUserId, onDelete }) {
                     }}
                   >
                     Delete
-                  </MenuItem>
-                </>
+                  </MenuItem>,
+                ]
               ) : (
                 <MenuItem
-                  onClick={handleMenuClose}
+                  onClick={handleFollow}
                   sx={{
                     fontWeight: 500,
                     "&:hover": {
@@ -160,7 +178,7 @@ function PostCard({ post, currentUserId, onDelete }) {
           <ChatBubbleOutlineIcon sx={{ color: "#888" }} />
         </IconButton>
         <Typography variant="body2" color="#ccc">
-          {total_comments}
+          {total_replies}
         </Typography>
 
         <IconButton sx={{ marginLeft: "auto" }}>

@@ -8,6 +8,7 @@ import OAuthModal from "./modals/OAuthModal";
 import ProtectedRoute from "./ProtectedRoute";
 import EditProfileModal from "./modals/EditProfileModal";
 import CreatePostModal from "./modals/CreatePostModal";
+import EditPostModal from "./modals/EditPostModal";
 
 function PagesRoutes() {
   const location = useLocation();
@@ -82,10 +83,21 @@ function PagesRoutes() {
           path="/create-post"
           element={
             <ProtectedRoute
-              condition={state?.fromSignUp === true}
+              condition={state?.fromHome === true}
               redirectTo="/"
             >
               <CreatePostModal />
+            </ProtectedRoute>
+          }
+        />
+          <Route
+          path="/edit-post/:id"
+          element={
+            <ProtectedRoute
+              condition={state?.fromHome === true}
+              redirectTo="/"
+            >
+              <EditPostModal />
             </ProtectedRoute>
           }
         />
@@ -135,6 +147,21 @@ function PagesRoutes() {
             }
           />
         )}
+
+        {!backgroundLocation && (
+          <Route
+            path="/edit-post/:id"
+            element={
+              <ProtectedRoute
+                condition={state?.fromHome === true} // Allow only if we came from signup
+                redirectTo="/"
+              >
+                <EditPostModal />
+              </ProtectedRoute>
+            }
+          />
+        )}
+
         {!backgroundLocation && (
           <Route
             path="/edit-profile"
@@ -156,6 +183,7 @@ function PagesRoutes() {
           <Route path="/create-account" element={<CreateAccountModal />} />
           <Route path="/create-profile" element={<CreateProfileModal />} />
           <Route path="/create-post" element={<CreatePostModal />} />
+          <Route path="/edit-post/:id" element={<EditPostModal />} />
           <Route path="/edit-profile" element={<EditProfileModal />} />
           <Route path="/sign-in" element={<SignInModal />} />
           <Route path="/google-sign-in" element={<OAuthModal />} />

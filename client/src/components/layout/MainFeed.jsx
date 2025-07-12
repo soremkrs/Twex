@@ -4,13 +4,13 @@ import {
   Typography,
   ToggleButton,
   ToggleButtonGroup,
-  CircularProgress,
   Fab,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import PostCard from "../cards/PostCard";
 import axiosInstance from "../../utils/axiosConfig";
+import LoadingModal from "../modals/LoadingModal";
 
 // Styled Components
 const FeedContainer = styled(Box)(({ theme }) => ({
@@ -55,7 +55,7 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
   },
 }));
 
-function MainFeed({ currentUserId }) {
+function MainFeed({ currentUserId, onEditPost }) {
   const [posts, setPosts] = useState([]);
   const [feedType, setFeedType] = useState("all");
   const [page, setPage] = useState(1);
@@ -147,10 +147,22 @@ function MainFeed({ currentUserId }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDelete = async (postId) => {
+  const handleDelete = async (id) => {
     try {
-      await axiosInstance.delete(`/posts/${postId}`);
-      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      await axiosInstance.delete(`/delete/posts/${id}`);
+      setPosts((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+    }
+  };
+
+  const handleEdit = (id) => {
+    onEditPost(id);
+  };
+
+  const handleFollow = async (user_id) => {
+    try {
+      await axiosInstance.get(`/follow/user/${user_id}`);
     } catch (err) {
       console.error("Failed to delete post:", err);
     }
@@ -176,6 +188,8 @@ function MainFeed({ currentUserId }) {
           post={post}
           currentUserId={currentUserId}
           onDelete={handleDelete}
+          onEdit={handleEdit}
+          onFollow={handleFollow}
         />
       ))}
 
@@ -183,11 +197,7 @@ function MainFeed({ currentUserId }) {
       {hasMore && !loading && <Box ref={lastPostRef} sx={{ height: "1px" }} />}
 
       {/* Loading */}
-      {loading && (
-        <Box textAlign="center" py={2}>
-          <CircularProgress size={24} color="inherit" />
-        </Box>
-      )}
+      {loading && <LoadingModal />}
 
       {/* No more posts */}
       {!hasMore && !loading && (

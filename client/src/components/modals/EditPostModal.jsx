@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ImageIcon from "@mui/icons-material/Image";
 import { useAuth } from "../../contexts/useAuthContext";
@@ -18,6 +18,7 @@ import LoadingModal from "./LoadingModal";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import axiosInstance from "../../utils/axiosConfig";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiPaper-root": {
@@ -71,7 +72,7 @@ const PostButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-function CreatePostModal() {
+function EditPostModal() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [content, setContent] = useState("");
@@ -79,6 +80,28 @@ function CreatePostModal() {
   const [loading, setLoading] = useState(false);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
   const emojiPickerOpen = Boolean(emojiAnchorEl);
+
+  const { id } = useParams(); // this is the post ID
+  const [post, setPost] = useState(null);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      setLoading(true);
+      try {
+        const res = await axiosInstance.get(`/posts/${id}`); // Make sure your backend has this route
+        const postData = res.data.post;
+        setPost(postData);
+        setContent(postData.content || "");
+        setImage(postData.image_url || null); // assuming this is a URL, not a file
+      } catch (err) {
+        console.error("Failed to load post", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPost();
+  }, [id]);
 
   const handleFileChange = (e) => {
     if (e.target.files[0]) {
@@ -93,21 +116,26 @@ function CreatePostModal() {
     try {
       const formData = new FormData();
       formData.append("content", content);
-      if (image) {
-        formData.append("image", image);
+
+      if (image && typeof image !== "string") {
+        formData.append("image", image); // only append new image file
       }
 
-      const res = await axiosInstance.post("/create/post", formData, {
+      if (image === null && post?.image_url) {
+        formData.append("removeImage", "true"); // signal to backend to delete existing image
+      }
+
+      const res = await axiosInstance.put(`/posts/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+      navigate(-1);
     } catch (err) {
       alert("Failed to post");
       console.error(err);
     } finally {
       setLoading(false);
-      navigate(-1);
     }
   };
 
@@ -152,9 +180,18 @@ function CreatePostModal() {
             />
 
             {image && (
-              <Box mt={1} borderRadius={3} overflow="hidden">
+              <Box
+                mt={1}
+                position="relative"
+                borderRadius={3}
+                overflow="hidden"
+              >
                 <img
-                  src={URL.createObjectURL(image)}
+                  src={
+                    typeof image === "string"
+                      ? image
+                      : URL.createObjectURL(image)
+                  }
                   alt="preview"
                   style={{
                     width: "100%",
@@ -163,6 +200,19 @@ function CreatePostModal() {
                     borderRadius: "16px",
                   }}
                 />
+                <IconButton
+                  onClick={() => setImage(null)}
+                  sx={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    backgroundColor: "rgba(0,0,0,0.6)",
+                    color: "white",
+                    "&:hover": { backgroundColor: "rgba(0,0,0,0.8)" },
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
               </Box>
             )}
           </Box>
@@ -238,4 +288,4 @@ function CreatePostModal() {
   );
 }
 
-export default CreatePostModal;
+export default EditPostModal;

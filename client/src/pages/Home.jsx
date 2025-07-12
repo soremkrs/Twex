@@ -33,8 +33,14 @@ function Home() {
 
   const openPostModal = () => {
     navigate("/create-post", {
-            state: { backgroundLocation: location },
-        });
+      state: { backgroundLocation: location, fromHome: true, },
+    });
+  };
+
+  const openEditPostModal = (postId) => {
+    navigate(`/edit-post/${postId}`, {
+      state: { backgroundLocation: location, fromHome: true,},
+    });
   };
 
   return (
@@ -47,7 +53,10 @@ function Home() {
         onClickProfile={openProfilePage}
         onClickPost={openPostModal}
       />
-      <MainFeed currentUserId={user?.id} />
+      <MainFeed 
+        currentUserId={user?.id} 
+        onEditPost={openEditPostModal}
+      />
       <RightSidebar />
     </Box>
   );

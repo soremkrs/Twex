@@ -70,7 +70,6 @@ const storage = new CloudinaryStorage({
   cloudinary,
   params: {
     folder: "twex",
-    allowed_formats: ["jpg", "jpeg", "png", "gif"],
     transformation: [
       { width: 1080, height: 1080, crop: "limit" },
       { quality: "auto", fetch_format: "auto" },
@@ -91,16 +90,16 @@ app.get("/api/auth/check", (req, res) => {
   }
 });
 
-app.post("/api/auth/logout", (req, res) => {
-  req.logout((err) => {
-    if (err) {
-      return res.status(500).json({ message: "Logout failed" });
-    }
+app.post("/api/auth/logout", async (req, res) => {
+  try {
+    await req.logout(); // Modern async version
     req.session.destroy(() => {
       res.clearCookie("connect.sid");
       res.status(200).json({ message: "Logged out" });
     });
-  });
+  } catch (err) {
+    res.status(500).json({ message: "Logout failed" });
+  }
 });
 
 app.get("/api/posts", async (req, res) => {
@@ -150,6 +149,83 @@ app.get("/api/posts", async (req, res) => {
   }
 });
 
+app.get("/api/posts/:id", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const postId = req.params.id;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT
+        tweets.id,
+        tweets.content,
+        tweets.image_url,
+        tweets.user_id,
+        users.username,
+        users.real_name,
+        users.avatar_url
+      FROM tweets
+      JOIN users ON tweets.user_id = users.id
+      WHERE tweets.id = $1
+      `,
+      [postId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Post not found" });
+    } else {
+      res.status(200).json({ post: result.rows[0] });
+    }
+    
+  } catch (err) {
+    console.error("Fetch single post error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.put("/api/posts/:id", upload.single("image"), async (req, res) => {
+  const postId = req.params.id;
+  const userId = req.user?.id;
+  const { content, removeImage } = req.body;
+
+  try {
+    // Check post exists and belongs to the user
+    const result = await db.query("SELECT * FROM tweets WHERE id = $1", [postId]);
+    const post = result.rows[0];
+
+    if (!post) return res.status(404).json({ error: "Post not found" });
+    if (post.user_id !== userId) return res.status(403).json({ error: "Unauthorized" });
+
+    let imageUrl = post.image_url;
+
+    // If a new image is uploaded, replace the old one
+    if (req.file) {
+      // Optionally delete old image from Cloudinary here
+      imageUrl = req.file.path; // Cloudinary URL
+    } else if (removeImage === "true") {
+      // Remove the image if instructed
+      imageUrl = null;
+
+      // Optionally delete from Cloudinary if you store the public_id
+    }
+
+    await db.query(
+      "UPDATE tweets SET content = $1, image_url = $2 WHERE id = $3",
+      [content, imageUrl, postId]
+    );
+
+    res.json({ message: "Post updated" });
+  } catch (err) {
+    console.error("Failed to update post", err);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
+
+
+
 // Start OAuth with Google
 app.get(
   "/api/auth/google",
@@ -164,6 +240,35 @@ app.get(
     session: true, // Session will be created here
   })
 );
+
+app.delete("/api/delete/posts/:id", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const postId = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    // First, check if the post exists and belongs to the current user
+    const result = await db.query(
+      "SELECT * FROM tweets WHERE id = $1 AND user_id = $2",
+      [postId, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(403).json({ message: "You can't delete this post" });
+    } else {
+      // Delete the post
+      await db.query("DELETE FROM tweets WHERE id = $1", [postId]);
+    }
+
+    res.status(200).json({ message: "Post deleted" });
+  } catch (err) {
+    console.error("Post deletion error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 app.post("/api/auth/signup", async (req, res) => {
   // console.log(req.body);

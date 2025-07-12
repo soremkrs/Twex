@@ -17,7 +17,7 @@ const CustomButton = styled(Button)({
   },
 });
 
-function LogOutButton(props) {
+function PostButton(props) {
   return (
     <CustomButton onClick={props.onClick} variant="contained">
       Post
@@ -25,4 +25,4 @@ function LogOutButton(props) {
   );
 }
 
-export default LogOutButton;
+export default PostButton;
