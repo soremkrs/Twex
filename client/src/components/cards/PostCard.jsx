@@ -14,9 +14,11 @@ import {
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import { styled } from "@mui/material/styles";
+import axiosInstance from "../../utils/axiosConfig";
 
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: "#000",
@@ -25,7 +27,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
   borderRadius: 0,
 }));
 
-function PostCard({ post, currentUserId, onDelete, onEdit, onFollow }) {
+function PostCard({ post, currentUserId, onDelete, onEdit, refreshPosts }) {
   const {
     id,
     content,
@@ -41,32 +43,64 @@ function PostCard({ post, currentUserId, onDelete, onEdit, onFollow }) {
   } = post;
 
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [isFollowing, setIsFollowing] = React.useState(false);
+  const [liked, setLiked] = React.useState(liked_by_current_user);
+  const [totalLikes, setTotalLikes] = React.useState(total_likes);
+
   const open = Boolean(anchorEl);
+  const isMyPost = user_id === currentUserId;
 
-  const handleMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+  // Check if current user follows the post's author
+  React.useEffect(() => {
+    if (!isMyPost) {
+      axiosInstance
+        .get(`/following/${user_id}`)
+        .then((res) => {
+          setIsFollowing(res.data.isFollowing);
+        })
+        .catch((err) => {
+          console.error("Error checking follow status", err);
+        });
+    }
+  }, [user_id, isMyPost]);
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
+  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => setAnchorEl(null);
 
   const handleEdit = () => {
     handleMenuClose();
-    onEdit(id); // Pass post ID to parent
+    onEdit(id);
   };
 
   const handleDelete = () => {
     handleMenuClose();
-    onDelete(id); // Pass post ID to parent
+    onDelete(id);
   };
 
-  const handleFollow = () => {
-    handleMenuClose();
-    onFollow(user_id); // Pass user ID to parent
+  const handleFollowToggle = () => {
+    const endpoint = isFollowing
+      ? `/unfollow/${user_id}`
+      : `/follow/${user_id}`;
+    const method = isFollowing ? "delete" : "post";
+
+    axiosInstance[method](endpoint)
+      .then(() => setIsFollowing(!isFollowing))
+      .catch((err) => console.error("Follow toggle error", err));
   };
 
-  const isMyPost = user_id === currentUserId;
+  const handleLikeToggle = () => {
+    const method = liked ? "delete" : "post";
+    const url = liked ? `/unlike/${id}` : `/like/${id}`;
+
+    axiosInstance[method](url)
+      .then(() => {
+        setLiked(!liked);
+        refreshPosts?.();
+      })
+      .catch((err) => {
+        console.error("Error toggling like", err);
+      });
+  };
 
   return (
     <StyledCard>
@@ -102,9 +136,7 @@ function PostCard({ post, currentUserId, onDelete, onEdit, onFollow }) {
                     onClick={handleEdit}
                     sx={{
                       fontWeight: 500,
-                      "&:hover": {
-                        backgroundColor: "#111",
-                      },
+                      "&:hover": { backgroundColor: "#111" },
                     }}
                   >
                     Edit
@@ -114,9 +146,7 @@ function PostCard({ post, currentUserId, onDelete, onEdit, onFollow }) {
                     onClick={handleDelete}
                     sx={{
                       fontWeight: 500,
-                      "&:hover": {
-                        backgroundColor: "#111",
-                      },
+                      "&:hover": { backgroundColor: "#111" },
                     }}
                   >
                     Delete
@@ -124,15 +154,18 @@ function PostCard({ post, currentUserId, onDelete, onEdit, onFollow }) {
                 ]
               ) : (
                 <MenuItem
-                  onClick={handleFollow}
+                  onClick={() => {
+                    handleFollowToggle();
+                    handleMenuClose();
+                  }}
                   sx={{
                     fontWeight: 500,
-                    "&:hover": {
-                      backgroundColor: "#111",
-                    },
+                    "&:hover": { backgroundColor: "#111" },
                   }}
                 >
-                  Follow @{username}
+                  {isFollowing
+                    ? `Unfollow @${username}`
+                    : `Follow @${username}`}
                 </MenuItem>
               )}
             </Menu>
@@ -165,10 +198,12 @@ function PostCard({ post, currentUserId, onDelete, onEdit, onFollow }) {
       </CardContent>
 
       <CardActions disableSpacing>
-        <IconButton>
-          <FavoriteIcon
-            sx={{ color: liked_by_current_user ? "#e0245e" : "#888" }}
-          />
+        <IconButton onClick={handleLikeToggle}>
+          {liked ? (
+            <FavoriteIcon sx={{ color: "#e0245e" }} />
+          ) : (
+            <FavoriteBorderIcon sx={{ color: "#888" }} />
+          )}
         </IconButton>
         <Typography variant="body2" color="#ccc">
           {total_likes}

@@ -92,28 +92,19 @@ function MainFeed({ currentUserId, onEditPost }) {
     [loading, hasMore]
   );
 
-  const fetchPosts = async () => {
-    setLoading(true);
-    try {
-      const res = await axiosInstance.get(
-        `/posts?type=${feedType}&page=${page}`
-      );
-      const newPosts = res.data.posts || [];
-
-      setPosts((prev) => {
-        const existingIds = new Set(prev.map((p) => p.id));
-        const filteredNewPosts = newPosts.filter(
-          (post) => !existingIds.has(post.id)
-        );
-        return [...prev, ...filteredNewPosts];
-      });
-      setHasMore(newPosts.length > 0);
-    } catch (err) {
-      console.error("Failed to fetch posts:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchPosts = async () => {
+  setLoading(true);
+  try {
+    const res = await axiosInstance.get(`/posts?type=${feedType}&page=1`); // ✅ reset to page 1
+    const newPosts = res.data.posts || [];
+    setPosts(newPosts); // ✅ overwrite instead of appending
+    setHasMore(newPosts.length > 0);
+  } catch (err) {
+    console.error("Failed to fetch posts:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Reset when feedType changes
   useEffect(() => {
@@ -160,14 +151,6 @@ function MainFeed({ currentUserId, onEditPost }) {
     onEditPost(id);
   };
 
-  const handleFollow = async (user_id) => {
-    try {
-      await axiosInstance.get(`/follow/user/${user_id}`);
-    } catch (err) {
-      console.error("Failed to delete post:", err);
-    }
-  };
-
   return (
     <FeedContainer>
       {/* Toggle Buttons */}
@@ -189,7 +172,7 @@ function MainFeed({ currentUserId, onEditPost }) {
           currentUserId={currentUserId}
           onDelete={handleDelete}
           onEdit={handleEdit}
-          onFollow={handleFollow}
+          refreshPosts={fetchPosts}
         />
       ))}
 

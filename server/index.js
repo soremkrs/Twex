@@ -90,16 +90,14 @@ app.get("/api/auth/check", (req, res) => {
   }
 });
 
-app.post("/api/auth/logout", async (req, res) => {
-  try {
-    await req.logout(); // Modern async version
+app.post("/api/auth/logout", (req, res, next) => {
+  req.logout((err) => {
+    if (err) return next(err);
     req.session.destroy(() => {
       res.clearCookie("connect.sid");
       res.status(200).json({ message: "Logged out" });
     });
-  } catch (err) {
-    res.status(500).json({ message: "Logout failed" });
-  }
+  });
 });
 
 app.get("/api/posts", async (req, res) => {
@@ -107,41 +105,76 @@ app.get("/api/posts", async (req, res) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
+  const currentUserId = req.user?.id;
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
+  const filter = req.query.type || "all"; // "all" or "following"
 
   try {
-    const currentUserId = req.user?.id || null;
+    let query;
+    let values;
 
-    const result = await db.query(
-      `
-      SELECT
-        tweets.id,
-        tweets.content,
-        TO_CHAR(tweets.date, 'DD-MM-YYYY') AS date,
-        tweets.image_url,
-        tweets.user_id,
-        users.username,
-        users.real_name,
-        users.avatar_url,
-        COUNT(DISTINCT likes.user_id) AS total_likes,
-        COUNT(DISTINCT replies.id) AS total_replies,
-        EXISTS (
-          SELECT 1 FROM likes
-          WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
-        ) AS liked_by_current_user
-      FROM tweets
-      JOIN users ON tweets.user_id = users.id
-      LEFT JOIN likes ON likes.tweet_id = tweets.id
-      LEFT JOIN replies ON replies.tweet_id = tweets.id
-      GROUP BY tweets.id, users.id
-      ORDER BY tweets.id DESC
-      LIMIT $2 OFFSET $3
-    `,
-      [currentUserId, limit, offset]
-    );
+    if (filter === "following") {
+      // Get posts only from users the current user is following
+      query = `
+        SELECT
+          tweets.id,
+          tweets.content,
+          TO_CHAR(tweets.date, 'DD-MM-YYYY') AS date,
+          tweets.image_url,
+          tweets.user_id,
+          users.username,
+          users.real_name,
+          users.avatar_url,
+          COUNT(DISTINCT likes.user_id) AS total_likes,
+          COUNT(DISTINCT replies.id) AS total_replies,
+          EXISTS (
+            SELECT 1 FROM likes
+            WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
+          ) AS liked_by_current_user
+        FROM tweets
+        JOIN users ON tweets.user_id = users.id
+        LEFT JOIN likes ON likes.tweet_id = tweets.id
+        LEFT JOIN replies ON replies.tweet_id = tweets.id
+        WHERE tweets.user_id IN (
+          SELECT following_id FROM follows WHERE follower_id = $1
+        )
+        GROUP BY tweets.id, users.id
+        ORDER BY tweets.id DESC
+        LIMIT $2 OFFSET $3
+      `;
+      values = [currentUserId, limit, offset];
+    } else {
+      // Default: get all posts
+      query = `
+        SELECT
+          tweets.id,
+          tweets.content,
+          TO_CHAR(tweets.date, 'DD-MM-YYYY') AS date,
+          tweets.image_url,
+          tweets.user_id,
+          users.username,
+          users.real_name,
+          users.avatar_url,
+          COUNT(DISTINCT likes.user_id) AS total_likes,
+          COUNT(DISTINCT replies.id) AS total_replies,
+          EXISTS (
+            SELECT 1 FROM likes
+            WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
+          ) AS liked_by_current_user
+        FROM tweets
+        JOIN users ON tweets.user_id = users.id
+        LEFT JOIN likes ON likes.tweet_id = tweets.id
+        LEFT JOIN replies ON replies.tweet_id = tweets.id
+        GROUP BY tweets.id, users.id
+        ORDER BY tweets.id DESC
+        LIMIT $2 OFFSET $3
+      `;
+      values = [currentUserId, limit, offset];
+    }
 
+    const result = await db.query(query, values);
     res.status(200).json({ posts: result.rows });
   } catch (err) {
     console.error("Fetch posts error:", err);
@@ -179,7 +212,6 @@ app.get("/api/posts/:id", async (req, res) => {
     } else {
       res.status(200).json({ post: result.rows[0] });
     }
-    
   } catch (err) {
     console.error("Fetch single post error:", err);
     res.status(500).json({ message: "Server error" });
@@ -193,11 +225,14 @@ app.put("/api/posts/:id", upload.single("image"), async (req, res) => {
 
   try {
     // Check post exists and belongs to the user
-    const result = await db.query("SELECT * FROM tweets WHERE id = $1", [postId]);
+    const result = await db.query("SELECT * FROM tweets WHERE id = $1", [
+      postId,
+    ]);
     const post = result.rows[0];
 
     if (!post) return res.status(404).json({ error: "Post not found" });
-    if (post.user_id !== userId) return res.status(403).json({ error: "Unauthorized" });
+    if (post.user_id !== userId)
+      return res.status(403).json({ error: "Unauthorized" });
 
     let imageUrl = post.image_url;
 
@@ -224,7 +259,135 @@ app.put("/api/posts/:id", upload.single("image"), async (req, res) => {
   }
 });
 
+// POST /api/follow/:id — follow a user
+app.post("/api/follow/:id", async (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
 
+  const followerId = req.user.id;
+  const followingId = parseInt(req.params.id);
+
+  if (followerId === followingId) {
+    return res.status(400).json({ error: "You can't follow yourself" });
+  }
+
+  try {
+    await db.query(
+      "INSERT INTO follows (follower_id, following_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      [followerId, followingId]
+    );
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Error following user:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// DELETE /api/unfollow/:id — unfollow a user
+app.delete("/api/unfollow/:id", async (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const followerId = req.user.id;
+  const followingId = parseInt(req.params.id);
+
+  try {
+    await db.query(
+      "DELETE FROM follows WHERE follower_id = $1 AND following_id = $2",
+      [followerId, followingId]
+    );
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Error unfollowing user:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// GET /api/following/:id — check if current user follows the given user
+app.get("/api/following/:id", async (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const followerId = req.user.id;
+  const followingId = parseInt(req.params.id);
+
+  try {
+    const result = await db.query(
+      "SELECT 1 FROM follows WHERE follower_id = $1 AND following_id = $2",
+      [followerId, followingId]
+    );
+    res.json({ isFollowing: result.rowCount > 0 });
+  } catch (err) {
+    console.error("Error checking following status:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// POST /api/like/:id — like a tweet
+app.post("/api/like/:id", async (req, res) => {
+  if (!req.isAuthenticated?.() || !req.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const userId = req.user.id;
+  const tweetId = parseInt(req.params.id);
+
+  try {
+    await db.query(
+      "INSERT INTO likes (user_id, tweet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      [userId, tweetId]
+    );
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Error liking post:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// DELETE /api/unlike/:id — unlike a tweet
+app.delete("/api/unlike/:id", async (req, res) => {
+  if (!req.isAuthenticated?.() || !req.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const userId = req.user.id;
+  const tweetId = parseInt(req.params.id);
+
+  try {
+    await db.query("DELETE FROM likes WHERE user_id = $1 AND tweet_id = $2", [
+      userId,
+      tweetId,
+    ]);
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error("Error unliking post:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
+
+// GET /api/liked/:id — check if current user liked a tweet
+app.get("/api/liked/:id", async (req, res) => {
+  if (!req.isAuthenticated?.() || !req.user) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const userId = req.user.id;
+  const tweetId = parseInt(req.params.id);
+
+  try {
+    const result = await db.query(
+      "SELECT 1 FROM likes WHERE user_id = $1 AND tweet_id = $2",
+      [userId, tweetId]
+    );
+    res.status(200).json({ liked: result.rowCount > 0 });
+  } catch (err) {
+    console.error("Error checking like status:", err);
+    res.status(500).json({ error: "Database error" });
+  }
+});
 
 // Start OAuth with Google
 app.get(
