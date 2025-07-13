@@ -136,7 +136,7 @@ app.get("/api/posts", async (req, res) => {
         FROM tweets
         JOIN users ON tweets.user_id = users.id
         LEFT JOIN likes ON likes.tweet_id = tweets.id
-        LEFT JOIN replies ON replies.tweet_id = tweets.id
+        LEFT JOIN replies ON replies.id = tweets.id
         WHERE tweets.user_id IN (
           SELECT following_id FROM follows WHERE follower_id = $1
         )
@@ -541,6 +541,63 @@ app.post("/api/create/post", upload.single("image"), async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+app.post("/api/replies", upload.single("image"), async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const { content, replyTo } = req.body;
+  const imageUrl = req.file?.path || null;
+  const date = new Date().toISOString().split("T")[0];
+
+  try {
+    await db.query(
+      `INSERT INTO replies (tweet_id, user_id, content, date, image_url) VALUES ($1, $2, $3, $4, $5)`,
+      [replyTo, req.user.id, content, date, imageUrl]
+    );
+    res.status(201).json({ message: "Post created", imageUrl });
+  } catch (err) {
+    console.error("Post creation failed:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+app.get("/api/posts/:id/replies", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const postId = parseInt(req.params.id);
+
+  try {
+    const result = await db.query(
+      `
+      SELECT
+        replies.id,
+        replies.content,
+        replies.image_url,
+        TO_CHAR(replies.date, 'DD-MM-YYYY') AS date,
+        replies.user_id,
+        users.username,
+        users.real_name,
+        users.avatar_url
+      FROM replies
+      JOIN users ON replies.user_id = users.id
+      WHERE replies.tweet_id = $1
+      ORDER BY replies.id ASC
+      `,
+      [postId]
+    );
+
+    res.status(200).json({ replies: result.rows });
+  } catch (err) {
+    console.error("Error fetching replies:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 
 passport.use(
   "local",

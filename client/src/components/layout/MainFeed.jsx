@@ -25,15 +25,14 @@ const FeedContainer = styled(Box)(({ theme }) => ({
   position: "relative",
 }));
 
-const StyledToggleGroup = styled(ToggleButtonGroup)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
+const StyledToggleGroup = styled(ToggleButtonGroup)(() => ({
+  marginBottom: "16px",
   backgroundColor: "#000",
   borderRadius: "100px",
   border: "1px solid #333",
-  overflow: "hidden",
 }));
 
-const StyledToggleButton = styled(ToggleButton)(({ theme }) => ({
+const StyledToggleButton = styled(ToggleButton)(() => ({
   flex: 1,
   color: "white",
   textTransform: "none",
@@ -55,7 +54,7 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
   },
 }));
 
-function MainFeed({ currentUserId, onEditPost }) {
+function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
   const [posts, setPosts] = useState([]);
   const [feedType, setFeedType] = useState("all");
   const [page, setPage] = useState(1);
@@ -63,135 +62,168 @@ function MainFeed({ currentUserId, onEditPost }) {
   const [loading, setLoading] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  const [viewingRepliesFor, setViewingRepliesFor] = useState(null);
+  const [parentPost, setParentPost] = useState(null);
+  const [replies, setReplies] = useState([]);
+
   const observer = useRef();
 
   const lastPostRef = useCallback(
     (node) => {
-      if (loading) return;
+      if (loading || !hasMore) return;
       if (observer.current) observer.current.disconnect();
-
-      observer.current = new IntersectionObserver(
-        (entries) => {
-          const entry = entries[0];
-          if (entry.isIntersecting && hasMore && !loading) {
-            // Add slight delay to allow layout stabilization
-            setTimeout(() => {
-              setPage((prevPage) => prevPage + 1);
-            }, 300); // try 300ms delay
-          }
-        },
-        {
-          root: null,
-          rootMargin: "200px", // give some pre-load room
-          threshold: 0.5, // trigger when 50% visible
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setTimeout(() => setPage((prev) => prev + 1), 300);
         }
-      );
-
+      });
       if (node) observer.current.observe(node);
     },
     [loading, hasMore]
   );
 
-const fetchPosts = async () => {
-  setLoading(true);
-  try {
-    const res = await axiosInstance.get(`/posts?type=${feedType}&page=1`); // ✅ reset to page 1
-    const newPosts = res.data.posts || [];
-    setPosts(newPosts); // ✅ overwrite instead of appending
-    setHasMore(newPosts.length > 0);
-  } catch (err) {
-    console.error("Failed to fetch posts:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchPosts = async () => {
+    setLoading(true);
+    try {
+      const res = await axiosInstance.get(
+        `/posts?type=${feedType}&page=${page}`
+      );
+      const newPosts = res.data.posts || [];
+      setPosts((prev) => (page === 1 ? newPosts : [...prev, ...newPosts]));
+      setHasMore(newPosts.length > 0);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Reset when feedType changes
   useEffect(() => {
     setPosts([]);
     setPage(1);
     setHasMore(true);
   }, [feedType]);
 
-  // Fetch posts when page or feedType changes
   useEffect(() => {
     fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, feedType]);
 
-  // Scroll-to-top button visibility
   useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 400);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const handleFeedTypeChange = (event, newType) => {
-    if (newType !== null) {
-      setFeedType(newType);
-    }
-  };
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   const handleDelete = async (id) => {
     try {
       await axiosInstance.delete(`/delete/posts/${id}`);
       setPosts((prev) => prev.filter((p) => p.id !== id));
+      if (viewingRepliesFor === id) {
+        setViewingRepliesFor(null);
+        setReplies([]);
+        setParentPost(null);
+      }
     } catch (err) {
-      console.error("Failed to delete post:", err);
+      console.error("Delete error:", err);
     }
   };
 
-  const handleEdit = (id) => {
-    onEditPost(id);
+  const handleViewReplies = async (postId) => {
+    try {
+      setLoading(true);
+      const parentRes = await axiosInstance.get(`/posts/${postId}`);
+      setParentPost(parentRes.data.post);
+
+      const repliesRes = await axiosInstance.get(`/posts/${postId}/replies`);
+      setReplies(repliesRes.data.replies || []);
+      setViewingRepliesFor(postId);
+    } catch (err) {
+      console.error("Error fetching replies", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <FeedContainer>
-      {/* Toggle Buttons */}
-      <StyledToggleGroup
-        value={feedType}
-        exclusive
-        onChange={handleFeedTypeChange}
-        fullWidth
-      >
-        <StyledToggleButton value="all">All</StyledToggleButton>
-        <StyledToggleButton value="following">Following</StyledToggleButton>
-      </StyledToggleGroup>
+      {viewingRepliesFor && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            cursor: "pointer",
+            mb: 2,
+          }}
+          onClick={() => {
+            setViewingRepliesFor(null);
+            setParentPost(null);
+            setReplies([]);
+            fetchPosts();
+          }}
+        >
+          <Typography fontSize="1.5rem" mr={1}>
+            ←
+          </Typography>
+          <Typography fontWeight="bold" color="#4A99E9">
+            Back to Feed
+          </Typography>
+        </Box>
+      )}
 
-      {/* Post List */}
-      {posts.map((post, index) => (
+      {!viewingRepliesFor && (
+        <StyledToggleGroup
+          value={feedType}
+          exclusive
+          onChange={(e, val) => val && setFeedType(val)}
+          fullWidth
+        >
+          <StyledToggleButton value="all">All</StyledToggleButton>
+          <StyledToggleButton value="following">Following</StyledToggleButton>
+        </StyledToggleGroup>
+      )}
+
+      {parentPost && (
         <PostCard
-          key={index}
+          post={parentPost}
+          currentUserId={currentUserId}
+          onDelete={handleDelete}
+          onEdit={onEditPost}
+          refreshPosts={fetchPosts}
+          onReply={onReplyPost}
+          viewReply={handleViewReplies}
+          variant="default"
+          hideActions={true} // 👈 Add this line
+        />
+      )}
+
+      {(viewingRepliesFor ? replies : posts).map((post, i) => (
+        <PostCard
+          key={post.id}
           post={post}
           currentUserId={currentUserId}
           onDelete={handleDelete}
-          onEdit={handleEdit}
+          onEdit={onEditPost}
           refreshPosts={fetchPosts}
+          onReply={onReplyPost}
+          viewReply={handleViewReplies}
+          variant={viewingRepliesFor ? "reply" : "default"}
         />
       ))}
 
-      {/* Trigger infinite scroll here */}
-      {hasMore && !loading && <Box ref={lastPostRef} sx={{ height: "1px" }} />}
-
-      {/* Loading */}
+      {hasMore && !loading && <Box ref={lastPostRef} sx={{ height: 1 }} />}
       {loading && <LoadingModal />}
 
-      {/* No more posts */}
       {!hasMore && !loading && (
-        <Typography variant="body2" color="gray" align="center" py={2}>
+        <Typography align="center" color="gray" py={2}>
           No more posts
         </Typography>
       )}
 
-      {/* Scroll to Top */}
       {showScrollTop && (
-        <ScrollTopButton size="small" onClick={scrollToTop}>
+        <ScrollTopButton
+          size="small"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
           <KeyboardArrowUpIcon />
         </ScrollTopButton>
       )}

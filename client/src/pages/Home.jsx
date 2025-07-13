@@ -43,6 +43,12 @@ function Home() {
     });
   };
 
+  const openReplyModal = (postId) => {
+    navigate(`/reply-post/${postId}`, {
+      state: { backgroundLocation: location, fromHome: true,},
+    });
+  };
+
   return (
     <Box display="flex" justifyContent="center" maxWidth="1200px" mx="auto">
       <LeftSidebar
@@ -56,6 +62,7 @@ function Home() {
       <MainFeed 
         currentUserId={user?.id} 
         onEditPost={openEditPostModal}
+        onReplyPost={openReplyModal}
       />
       <RightSidebar />
     </Box>

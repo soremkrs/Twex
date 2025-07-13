@@ -9,6 +9,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import EditProfileModal from "./modals/EditProfileModal";
 import CreatePostModal from "./modals/CreatePostModal";
 import EditPostModal from "./modals/EditPostModal";
+import ReplyModal from "./modals/ReplyModal";
 
 function PagesRoutes() {
   const location = useLocation();
@@ -82,21 +83,15 @@ function PagesRoutes() {
         <Route
           path="/create-post"
           element={
-            <ProtectedRoute
-              condition={state?.fromHome === true}
-              redirectTo="/"
-            >
+            <ProtectedRoute condition={state?.fromHome === true} redirectTo="/">
               <CreatePostModal />
             </ProtectedRoute>
           }
         />
-          <Route
+        <Route
           path="/edit-post/:id"
           element={
-            <ProtectedRoute
-              condition={state?.fromHome === true}
-              redirectTo="/"
-            >
+            <ProtectedRoute condition={state?.fromHome === true} redirectTo="/">
               <EditPostModal />
             </ProtectedRoute>
           }
@@ -107,6 +102,15 @@ function PagesRoutes() {
           element={
             <ProtectedRoute condition={state?.fromHome === true} redirectTo="/">
               <EditProfileModal />
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="/reply-post/:id"
+          element={
+            <ProtectedRoute condition={state?.fromHome === true} redirectTo="/">
+              <ReplyModal />
             </ProtectedRoute>
           }
         />
@@ -162,6 +166,20 @@ function PagesRoutes() {
           />
         )}
 
+          {!backgroundLocation && (
+          <Route
+            path="/reply-post/:id"
+            element={
+              <ProtectedRoute
+                condition={state?.fromHome === true} // Allow only if we came from signup
+                redirectTo="/"
+              >
+                <ReplyModal />
+              </ProtectedRoute>
+            }
+          />
+        )}
+
         {!backgroundLocation && (
           <Route
             path="/edit-profile"
@@ -184,6 +202,7 @@ function PagesRoutes() {
           <Route path="/create-profile" element={<CreateProfileModal />} />
           <Route path="/create-post" element={<CreatePostModal />} />
           <Route path="/edit-post/:id" element={<EditPostModal />} />
+          <Route path="/reply-post/:id" element={<ReplyModal />} />
           <Route path="/edit-profile" element={<EditProfileModal />} />
           <Route path="/sign-in" element={<SignInModal />} />
           <Route path="/google-sign-in" element={<OAuthModal />} />

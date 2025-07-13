@@ -72,7 +72,7 @@ const PostButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-function EditPostModal() {
+function ReplyModal() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [content, setContent] = useState("");
@@ -88,11 +88,8 @@ function EditPostModal() {
     const fetchPost = async () => {
       setLoading(true);
       try {
-        const res = await axiosInstance.get(`/posts/${id}`); // Make sure your backend has this route
-        const postData = res.data.post;
-        setPost(postData);
-        setContent(postData.content || "");
-        setImage(postData.image_url || null); // assuming this is a URL, not a file
+        const res = await axiosInstance.get(`/posts/${id}`);
+        setPost(res.data.post);
       } catch (err) {
         console.error("Failed to load post", err);
       } finally {
@@ -120,23 +117,21 @@ function EditPostModal() {
     try {
       const formData = new FormData();
       formData.append("content", content);
+      formData.append("replyTo", id); // ensure backend knows the parent post
 
-      if (image && typeof image !== "string") {
-        formData.append("image", image); // only append new image file
+      if (image) {
+        formData.append("image", image);
       }
 
-      if (image === null && post?.image_url) {
-        formData.append("removeImage", "true"); // signal to backend to delete existing image
-      }
-
-      const res = await axiosInstance.put(`/posts/${id}`, formData, {
+      const res = await axiosInstance.post("/replies", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      navigate(-1);
+
+      navigate(-1); // Close modal
     } catch (err) {
-      alert("Failed to post");
+      alert("Failed to post reply");
       console.error(err);
     } finally {
       setLoading(false);
@@ -219,6 +214,50 @@ function EditPostModal() {
                 </IconButton>
               </Box>
             )}
+            {post && (
+              <Box
+                p={2}
+                borderRadius={2}
+                sx={{ backgroundColor: "#111", border: "1px solid #333" }}
+              >
+                <Box display="flex" alignItems="center" gap={1} mb={1}>
+                  <Box
+                    component="img"
+                    src={post.avatar_url}
+                    alt="Avatar"
+                    sx={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      border: "1px solid #1d9bf0",
+                    }}
+                  />
+                  <Box>
+                    <Box fontWeight="bold">{post.real_name}</Box>
+                    <Box fontSize="14px" color="#aaa">
+                      @{post.username}
+                    </Box>
+                  </Box>
+                </Box>
+                <Box fontSize="16px" color="#ddd" mb={1}>
+                  {post.content}
+                </Box>
+                {post.image_url && (
+                  <Box
+                    component="img"
+                    src={post.image_url}
+                    alt="post"
+                    sx={{
+                      width: "100%",
+                      borderRadius: 2,
+                      objectFit: "cover",
+                      maxHeight: 300,
+                    }}
+                  />
+                )}
+              </Box>
+            )}
           </Box>
         </Box>
         {/* Divider line */}
@@ -292,4 +331,4 @@ function EditPostModal() {
   );
 }
 
-export default EditPostModal;
+export default ReplyModal;
