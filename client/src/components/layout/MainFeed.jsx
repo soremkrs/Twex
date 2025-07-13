@@ -39,6 +39,7 @@ const StyledToggleButton = styled(ToggleButton)(() => ({
   fontWeight: "bold",
   "&.Mui-selected": {
     backgroundColor: "#1d1d1d",
+    borderRadius: "100px",
     color: "#4A99E9",
   },
 }));
@@ -83,8 +84,9 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
   );
 
   const fetchPosts = async () => {
-    setLoading(true);
+    
     try {
+      setLoading(true);
       const res = await axiosInstance.get(
         `/posts?type=${feedType}&page=${page}`
       );
@@ -144,6 +146,24 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
     }
   };
 
+  const refreshRepliesView = async () => {
+  if (!viewingRepliesFor) return;
+
+  try {
+    setLoading(true);
+    const parentRes = await axiosInstance.get(`/posts/${viewingRepliesFor}`);
+    setParentPost(parentRes.data.post);
+
+    const repliesRes = await axiosInstance.get(`/posts/${viewingRepliesFor}/replies`);
+    setReplies(repliesRes.data.replies || []);
+  } catch (err) {
+    console.error("Error refreshing replies", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
   return (
     <FeedContainer>
       {viewingRepliesFor && (
@@ -159,6 +179,7 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
             setParentPost(null);
             setReplies([]);
             fetchPosts();
+            setPage(1);
           }}
         >
           <Typography fontSize="1.5rem" mr={1}>
@@ -188,7 +209,7 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
           currentUserId={currentUserId}
           onDelete={handleDelete}
           onEdit={onEditPost}
-          refreshPosts={fetchPosts}
+          refreshPosts={viewingRepliesFor ? refreshRepliesView : fetchPosts}
           onReply={onReplyPost}
           viewReply={handleViewReplies}
           variant="default"
@@ -203,7 +224,7 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
           currentUserId={currentUserId}
           onDelete={handleDelete}
           onEdit={onEditPost}
-          refreshPosts={fetchPosts}
+          refreshPosts={viewingRepliesFor ? refreshRepliesView : fetchPosts}
           onReply={onReplyPost}
           viewReply={handleViewReplies}
           variant={viewingRepliesFor ? "reply" : "default"}

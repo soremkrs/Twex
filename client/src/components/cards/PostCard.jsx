@@ -107,6 +107,19 @@ function PostCard({
       });
   };
 
+  const handleDeleteReply = () => {
+    handleMenuClose();
+
+    axiosInstance
+      .delete(`/reply/${id}`) // id is the reply's ID
+      .then(() => {
+        refreshPosts?.(); // Re-fetch the parent post and its replies
+      })
+      .catch((err) => {
+        console.error("Error deleting reply", err);
+      });
+  };
+
   return (
     <>
       {/* Parent post preview (only in reply variant) */}
@@ -171,7 +184,7 @@ function PostCard({
                 >
                   {variant === "reply" ? (
                     isMyPost && (
-                      <MenuItem key="delete" onClick={handleDelete}>
+                      <MenuItem key="delete" onClick={handleDeleteReply}>
                         Delete
                       </MenuItem>
                     )

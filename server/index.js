@@ -136,7 +136,7 @@ app.get("/api/posts", async (req, res) => {
         FROM tweets
         JOIN users ON tweets.user_id = users.id
         LEFT JOIN likes ON likes.tweet_id = tweets.id
-        LEFT JOIN replies ON replies.id = tweets.id
+        LEFT JOIN replies ON replies.tweet_id = tweets.id
         WHERE tweets.user_id IN (
           SELECT following_id FROM follows WHERE follower_id = $1
         )
@@ -597,7 +597,39 @@ app.get("/api/posts/:id/replies", async (req, res) => {
   }
 });
 
+app.delete("/api/reply/:id", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
+  const replyId = req.params.id;
+  const userId = req.user.id;
+
+  try {
+    // Ensure the reply exists and belongs to the user
+    const result = await db.query(`SELECT * FROM replies WHERE id = $1`, [
+      replyId,
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Reply not found" });
+    }
+
+    const reply = result.rows[0];
+
+    if (reply.user_id !== userId) {
+      return res.status(403).json({ message: "Forbidden: Not your reply" });
+    }
+
+    // Delete the reply
+    await db.query(`DELETE FROM replies WHERE id = $1`, [replyId]);
+
+    res.status(200).json({ message: "Reply deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting reply:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 passport.use(
   "local",
