@@ -5,11 +5,14 @@ import LeftSidebar from "../components/layout/LeftSidebar";
 import MainFeed from "../components/layout/MainFeed";
 import RightSidebar from "../components/layout/RightSidebar";
 import { useAuth } from "../contexts/useAuthContext";
+import BookmarkFeed from "../components/layout/BookmarkFeed";
 
 function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+ 
+  const path = location.pathname;
 
   const openHomePage = () => {
     navigate("/home");
@@ -33,21 +36,23 @@ function Home() {
 
   const openPostModal = () => {
     navigate("/create-post", {
-      state: { backgroundLocation: location, fromHome: true, },
+      state: { backgroundLocation: location, fromHome: true },
     });
   };
 
   const openEditPostModal = (postId) => {
     navigate(`/edit-post/${postId}`, {
-      state: { backgroundLocation: location, fromHome: true,},
+      state: { backgroundLocation: location, fromHome: true },
     });
   };
 
   const openReplyModal = (postId) => {
     navigate(`/reply-post/${postId}`, {
-      state: { backgroundLocation: location, fromHome: true,},
+      state: { backgroundLocation: location, fromHome: true },
     });
   };
+
+  const isBookmarkView = path === "/bookmarks";
 
   return (
     <Box display="flex" justifyContent="center" maxWidth="1200px" mx="auto">
@@ -59,11 +64,20 @@ function Home() {
         onClickProfile={openProfilePage}
         onClickPost={openPostModal}
       />
-      <MainFeed 
-        currentUserId={user?.id} 
-        onEditPost={openEditPostModal}
-        onReplyPost={openReplyModal}
-      />
+      {isBookmarkView ?  (
+        <BookmarkFeed
+          currentUserId={user?.id}
+          onEditPost={openEditPostModal}
+          onReplyPost={openReplyModal}
+          onBackToHome={openHomePage}
+        />
+      ) : (
+        <MainFeed
+          currentUserId={user?.id}
+          onEditPost={openEditPostModal}
+          onReplyPost={openReplyModal}
+        />
+      )}
       <RightSidebar />
     </Box>
   );

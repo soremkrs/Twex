@@ -37,6 +37,7 @@ function PostCard({
   viewReply,
   variant = "default", // "default" | "reply"
   hideActions = false,
+  onUnbookmark,
 }) {
   const {
     id,
@@ -56,6 +57,9 @@ function PostCard({
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [isFollowing, setIsFollowing] = React.useState(false);
   const [liked, setLiked] = React.useState(liked_by_current_user);
+  const [bookmarked, setBookmarked] = React.useState(
+    post.bookmarked_by_current_user
+  );
 
   const open = Boolean(anchorEl);
   const isMyPost = user_id === currentUserId;
@@ -118,6 +122,21 @@ function PostCard({
       .catch((err) => {
         console.error("Error deleting reply", err);
       });
+  };
+
+  const handleBookmarkToggle = async () => {
+    try {
+      if (bookmarked) {
+        await axiosInstance.delete(`/unbookmark/${post.id}`);
+        setBookmarked(false);
+        if (onUnbookmark) onUnbookmark(post.id);
+      } else {
+        await axiosInstance.post(`/bookmark/${post.id}`); // <-- URL param, no body
+        setBookmarked(true);
+      }
+    } catch (err) {
+      console.error("Bookmark toggle error:", err);
+    }
   };
 
   return (
@@ -273,8 +292,13 @@ function PostCard({
               {total_replies}
             </Typography>
 
-            <IconButton sx={{ marginLeft: "auto" }}>
-              <BookmarkBorderIcon sx={{ color: "#888" }} />
+            <IconButton
+              onClick={handleBookmarkToggle}
+              sx={{ marginLeft: "auto" }}
+            >
+              <BookmarkBorderIcon
+                sx={{ color: bookmarked ? "#FFD700" : "#888" }}
+              />
             </IconButton>
           </CardActions>
         )}

@@ -10,6 +10,7 @@ import EditProfileModal from "./modals/EditProfileModal";
 import CreatePostModal from "./modals/CreatePostModal";
 import EditPostModal from "./modals/EditPostModal";
 import ReplyModal from "./modals/ReplyModal";
+import ReplyFeed from "./layout/ReplyFeed";
 
 function PagesRoutes() {
   const location = useLocation();
@@ -52,6 +53,15 @@ function PagesRoutes() {
 
         <Route
           path="/bookmarks"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/posts/:id/replies"
           element={
             <ProtectedRoute>
               <Home />
