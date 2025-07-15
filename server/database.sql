@@ -39,3 +39,10 @@ CREATE TABLE replies (
   image_url TEXT,                                                    
   date DATE NOT NULL
 );
+
+CREATE TABLE bookmarks (
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  tweet_id INTEGER NOT NULL REFERENCES tweets(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  PRIMARY KEY (user_id, tweet_id)
+);
