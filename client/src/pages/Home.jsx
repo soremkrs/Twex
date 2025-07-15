@@ -6,6 +6,7 @@ import MainFeed from "../components/layout/MainFeed";
 import RightSidebar from "../components/layout/RightSidebar";
 import { useAuth } from "../contexts/useAuthContext";
 import BookmarkFeed from "../components/layout/BookmarkFeed";
+import ReplyFeed from "../components/layout/ReplyFeed";
 
 function Home() {
   const navigate = useNavigate();
@@ -53,6 +54,7 @@ function Home() {
   };
 
   const isBookmarkView = path === "/bookmarks";
+  const isReplies = path.startsWith("/posts/") && path.endsWith("/replies");
 
   return (
     <Box display="flex" justifyContent="center" maxWidth="1200px" mx="auto">
@@ -64,8 +66,16 @@ function Home() {
         onClickProfile={openProfilePage}
         onClickPost={openPostModal}
       />
+      {/* FEED AREA */}
       {isBookmarkView ?  (
         <BookmarkFeed
+          currentUserId={user?.id}
+          onEditPost={openEditPostModal}
+          onReplyPost={openReplyModal}
+          onBackToHome={openHomePage}
+        />
+      ) : isReplies ? (
+        <ReplyFeed
           currentUserId={user?.id}
           onEditPost={openEditPostModal}
           onReplyPost={openReplyModal}

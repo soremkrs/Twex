@@ -11,6 +11,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import PostCard from "../cards/PostCard";
 import axiosInstance from "../../utils/axiosConfig";
 import LoadingModal from "../modals/LoadingModal";
+import { useNavigate } from "react-router-dom";
 
 // Styled Components
 const FeedContainer = styled(Box)(({ theme }) => ({
@@ -62,10 +63,7 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-
-  const [viewingRepliesFor, setViewingRepliesFor] = useState(null);
-  const [parentPost, setParentPost] = useState(null);
-  const [replies, setReplies] = useState([]);
+  const navigate = useNavigate();
 
   const observer = useRef();
 
@@ -84,7 +82,6 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
   );
 
   const fetchPosts = async () => {
-    
     try {
       setLoading(true);
       const res = await axiosInstance.get(
@@ -120,114 +117,37 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
     try {
       await axiosInstance.delete(`/delete/posts/${id}`);
       setPosts((prev) => prev.filter((p) => p.id !== id));
-      if (viewingRepliesFor === id) {
-        setViewingRepliesFor(null);
-        setReplies([]);
-        setParentPost(null);
-      }
     } catch (err) {
       console.error("Delete error:", err);
     }
   };
 
-  const handleViewReplies = async (postId) => {
-    try {
-      setLoading(true);
-      const parentRes = await axiosInstance.get(`/posts/${postId}`);
-      setParentPost(parentRes.data.post);
-
-      const repliesRes = await axiosInstance.get(`/posts/${postId}/replies`);
-      setReplies(repliesRes.data.replies || []);
-      setViewingRepliesFor(postId);
-    } catch (err) {
-      console.error("Error fetching replies", err);
-    } finally {
-      setLoading(false);
-    }
+  const handleViewReplies = (postId) => {
+    navigate(`/posts/${postId}/replies`); 
   };
-
-  const refreshRepliesView = async () => {
-  if (!viewingRepliesFor) return;
-
-  try {
-    setLoading(true);
-    const parentRes = await axiosInstance.get(`/posts/${viewingRepliesFor}`);
-    setParentPost(parentRes.data.post);
-
-    const repliesRes = await axiosInstance.get(`/posts/${viewingRepliesFor}/replies`);
-    setReplies(repliesRes.data.replies || []);
-  } catch (err) {
-    console.error("Error refreshing replies", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
 
   return (
     <FeedContainer>
-      {viewingRepliesFor && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            cursor: "pointer",
-            mb: 2,
-          }}
-          onClick={() => {
-            setViewingRepliesFor(null);
-            setParentPost(null);
-            setReplies([]);
-            fetchPosts();
-            setPage(1);
-          }}
-        >
-          <Typography fontSize="1.5rem" mr={1}>
-            ←
-          </Typography>
-          <Typography fontWeight="bold" color="#4A99E9">
-            Back to Feed
-          </Typography>
-        </Box>
-      )}
+      <StyledToggleGroup
+        value={feedType}
+        exclusive
+        onChange={(e, val) => val && setFeedType(val)}
+        fullWidth
+      >
+        <StyledToggleButton value="all">All</StyledToggleButton>
+        <StyledToggleButton value="following">Following</StyledToggleButton>
+      </StyledToggleGroup>
 
-      {!viewingRepliesFor && (
-        <StyledToggleGroup
-          value={feedType}
-          exclusive
-          onChange={(e, val) => val && setFeedType(val)}
-          fullWidth
-        >
-          <StyledToggleButton value="all">All</StyledToggleButton>
-          <StyledToggleButton value="following">Following</StyledToggleButton>
-        </StyledToggleGroup>
-      )}
-
-      {parentPost && (
-        <PostCard
-          post={parentPost}
-          currentUserId={currentUserId}
-          onDelete={handleDelete}
-          onEdit={onEditPost}
-          refreshPosts={viewingRepliesFor ? refreshRepliesView : fetchPosts}
-          onReply={onReplyPost}
-          viewReply={handleViewReplies}
-          variant="default"
-          hideActions={true} // 👈 Add this line
-        />
-      )}
-
-      {(viewingRepliesFor ? replies : posts).map((post, i) => (
+      {posts.map((post) => (
         <PostCard
           key={post.id}
           post={post}
           currentUserId={currentUserId}
           onDelete={handleDelete}
           onEdit={onEditPost}
-          refreshPosts={viewingRepliesFor ? refreshRepliesView : fetchPosts}
+          refreshPosts={fetchPosts}
           onReply={onReplyPost}
           viewReply={handleViewReplies}
-          variant={viewingRepliesFor ? "reply" : "default"}
         />
       ))}
 

@@ -105,6 +105,24 @@ function BookmarkFeed({
     setBookmarks((prev) => prev.filter((post) => post.id !== postId));
   };
 
+  const handleViewReplies = (postId) => {
+    navigate(`/posts/${postId}/replies`);
+  };
+
+  const refreshAllBookmarks = async () => {
+    try {
+      setLoading(true);
+      const res = await axiosInstance.get(`/bookmarks?page=1`);
+      setBookmarks(res.data.bookmarks || []);
+      setPage(1);
+      setHasMore(true);
+    } catch (err) {
+      console.error("Error refreshing bookmarks:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <FeedContainer>
       <Box
@@ -131,11 +149,11 @@ function BookmarkFeed({
           currentUserId={currentUserId}
           onDelete={handleDelete}
           onEdit={onEditPost}
-          refreshPosts={fetchBookmarks}
+          refreshPosts={refreshAllBookmarks}
           onReply={onReplyPost}
-          viewReply={() => {}} // Optional for bookmarks
           variant="default"
           onUnbookmark={handleUnbookmark}
+          viewReply={handleViewReplies}
         />
       ))}
 

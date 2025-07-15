@@ -31,7 +31,7 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
   },
 }));
 
-function ReplyFeed({ currentUserId, onEditPost, onReplyPost }) {
+function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
   const { id: postId } = useParams();
   const navigate = useNavigate();
 
@@ -86,7 +86,7 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost }) {
           cursor: "pointer",
           mb: 2,
         }}
-        onClick={() => navigate("/")}
+        onClick={onBackToHome}
       >
         <Typography fontSize="1.5rem" mr={1}>
           ←
