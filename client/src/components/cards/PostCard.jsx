@@ -141,40 +141,6 @@ function PostCard({
 
   return (
     <>
-      {/* Parent post preview (only in reply variant) */}
-      {variant === "reply" && parent && (
-        <StyledCard
-          sx={{ backgroundColor: "#111", border: "1px solid #2f2f2f" }}
-        >
-          <CardHeader
-            avatar={<Avatar src={parent.avatar_url} />}
-            title={
-              <Typography fontWeight="bold" color="#fff">
-                {parent.real_name}
-              </Typography>
-            }
-            subheader={
-              <Typography variant="body2" color="#ccc">
-                @{parent.username} · {parent.date}
-              </Typography>
-            }
-          />
-          <CardContent>
-            <Typography variant="body1" color="#ccc" whiteSpace="pre-wrap">
-              {parent.content}
-            </Typography>
-            {parent.image_url && (
-              <CardMedia
-                component="img"
-                image={parent.image_url}
-                alt="Parent image"
-                sx={{ borderRadius: 4, marginTop: 2 }}
-              />
-            )}
-          </CardContent>
-        </StyledCard>
-      )}
-
       {/* This post (either default or reply) */}
       <StyledCard sx={variant === "reply" ? { ml: 4, mt: 1 } : {}}>
         <CardHeader
@@ -203,16 +169,40 @@ function PostCard({
                 >
                   {variant === "reply" ? (
                     isMyPost && (
-                      <MenuItem key="delete" onClick={handleDeleteReply}>
+                      <MenuItem
+                        key="delete"
+                        onClick={handleDeleteReply}
+                        sx={{
+                          "&:hover": {
+                            backgroundColor: "#111",
+                          },
+                        }}
+                      >
                         Delete
                       </MenuItem>
                     )
                   ) : isMyPost ? (
                     [
-                      <MenuItem key="edit" onClick={handleEdit}>
+                      <MenuItem
+                        key="edit"
+                        onClick={handleEdit}
+                        sx={{
+                          "&:hover": {
+                            backgroundColor: "#111",
+                          },
+                        }}
+                      >
                         Edit
                       </MenuItem>,
-                      <MenuItem key="delete" onClick={handleDelete}>
+                      <MenuItem
+                        key="delete"
+                        onClick={handleDelete}
+                        sx={{
+                          "&:hover": {
+                            backgroundColor: "#111",
+                          },
+                        }}
+                      >
                         Delete
                       </MenuItem>,
                     ]
@@ -222,6 +212,11 @@ function PostCard({
                       onClick={() => {
                         handleFollowToggle();
                         handleMenuClose();
+                      }}
+                      sx={{
+                        "&:hover": {
+                          backgroundColor: "#111",
+                        },
                       }}
                     >
                       {isFollowing
@@ -236,6 +231,11 @@ function PostCard({
                       onClick={() => {
                         viewReply(id);
                         handleMenuClose();
+                      }}
+                      sx={{
+                        "&:hover": {
+                          backgroundColor: "#111",
+                        },
                       }}
                     >
                       View replies ({total_replies})
@@ -270,7 +270,39 @@ function PostCard({
             />
           )}
         </CardContent>
-
+        {/* Parent post preview (only in reply variant) */}
+        {variant === "reply" && parent && (
+          <StyledCard
+            sx={{ backgroundColor: "#111", border: "1px solid #2f2f2f" }}
+          >
+            <CardHeader
+              avatar={<Avatar src={parent.avatar_url} />}
+              title={
+                <Typography fontWeight="bold" color="#fff">
+                  {parent.real_name}
+                </Typography>
+              }
+              subheader={
+                <Typography variant="body2" color="#ccc">
+                  @{parent.username} · {parent.date}
+                </Typography>
+              }
+            />
+            <CardContent>
+              <Typography variant="body1" color="#ccc" whiteSpace="pre-wrap">
+                {parent.content}
+              </Typography>
+              {parent.image_url && (
+                <CardMedia
+                  component="img"
+                  image={parent.image_url}
+                  alt="Parent image"
+                  sx={{ borderRadius: 4, marginTop: 2 }}
+                />
+              )}
+            </CardContent>
+          </StyledCard>
+        )}
         {/* Actions only shown on default (not reply) */}
         {variant !== "reply" && !hideActions && (
           <CardActions disableSpacing>

@@ -28,20 +28,28 @@ const FeedContainer = styled(Box)(({ theme }) => ({
 
 const StyledToggleGroup = styled(ToggleButtonGroup)(() => ({
   marginBottom: "16px",
-  backgroundColor: "#000",
+  border: "1px solid #555",
+  backgroundColor: "transparent",
   borderRadius: "100px",
-  border: "1px solid #333",
 }));
 
 const StyledToggleButton = styled(ToggleButton)(() => ({
-  flex: 1,
   color: "white",
-  textTransform: "none",
-  fontWeight: "bold",
+  textTransform: "none", // keep text as-is
+  fontWeight: 600,
+  flex: 1,
+  borderRadius: "100px",
+  border: "none",
   "&.Mui-selected": {
     backgroundColor: "#1d1d1d",
-    borderRadius: "100px",
     color: "#4A99E9",
+    fontWeight: 700,
+    "&:hover": {
+      backgroundColor: "#1d1d1d",
+    },
+  },
+  "&:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
   },
 }));
 

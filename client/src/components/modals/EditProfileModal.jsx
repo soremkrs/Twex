@@ -179,7 +179,7 @@ function EditProfileModal() {
       setUser(updatedUser);
 
       setHide(true);
-      navigate("/home", {
+      navigate( -1, {
         state: { user },
       });
     } catch (err) {

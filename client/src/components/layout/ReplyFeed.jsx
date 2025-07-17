@@ -64,19 +64,6 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const handleDelete = async (id) => {
-    try {
-      await axiosInstance.delete(`/delete/posts/${id}`);
-      if (id === parentPost?.id) {
-        navigate("/");
-      } else {
-        setReplies((prev) => prev.filter((r) => r.id !== id));
-      }
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
-  };
-
   return (
     <FeedContainer>
       <Box
@@ -100,7 +87,6 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
         <PostCard
           post={parentPost}
           currentUserId={currentUserId}
-          onDelete={handleDelete}
           onEdit={onEditPost}
           refreshPosts={fetchReplies}
           onReply={onReplyPost}
@@ -114,7 +100,6 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
           key={reply.id}
           post={reply}
           currentUserId={currentUserId}
-          onDelete={handleDelete}
           onEdit={onEditPost}
           refreshPosts={fetchReplies}
           onReply={onReplyPost}
