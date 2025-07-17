@@ -31,7 +31,7 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
   },
 }));
 
-function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
+function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passHomeUsername }) {
   const { id: postId } = useParams();
   const navigate = useNavigate();
 
@@ -64,6 +64,10 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const passUsername = (username) => {
+    passHomeUsername(username);
+  };
+
   return (
     <FeedContainer>
       <Box
@@ -90,6 +94,7 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
           onEdit={onEditPost}
           refreshPosts={fetchReplies}
           onReply={onReplyPost}
+          passUsername={passUsername}
           variant="default"
           hideActions
         />
@@ -103,6 +108,7 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
           onEdit={onEditPost}
           refreshPosts={fetchReplies}
           onReply={onReplyPost}
+          passUsername={passUsername}
           variant="reply"
         />
       ))}

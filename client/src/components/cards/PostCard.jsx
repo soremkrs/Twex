@@ -38,6 +38,7 @@ function PostCard({
   variant = "default", // "default" | "reply"
   hideActions = false,
   onUnbookmark,
+  passUsername,
 }) {
   const {
     id,
@@ -60,19 +61,20 @@ function PostCard({
   const [bookmarked, setBookmarked] = React.useState(
     post.bookmarked_by_current_user
   );
+  
 
   const open = Boolean(anchorEl);
   const isMyPost = user_id === currentUserId;
 
   React.useEffect(() => {
-    if (!isMyPost && variant !== "reply") {
-      axiosInstance
-        .get(`/following/${user_id}`)
-        .then((res) => {
-          setIsFollowing(res.data.isFollowing);
-        })
-        .catch((err) => console.error("Follow check error", err));
-    }
+    if (!user_id || isMyPost || variant === "reply") return;
+
+    axiosInstance
+      .get(`/following/${user_id}`)
+      .then((res) => {
+        setIsFollowing(res.data.isFollowing);
+      })
+      .catch((err) => console.error("Follow check error", err));
   }, [user_id, isMyPost, variant]);
 
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
@@ -139,12 +141,23 @@ function PostCard({
     }
   };
 
+  const goToProfile = () => {
+    passUsername(username);
+    refreshPosts?.();
+  };
+
   return (
     <>
       {/* This post (either default or reply) */}
       <StyledCard sx={variant === "reply" ? { ml: 4, mt: 1 } : {}}>
         <CardHeader
-          avatar={<Avatar src={avatar_url} />}
+          avatar={
+            <Avatar
+              src={avatar_url}
+              sx={{ cursor: "pointer" }}
+              onClick={goToProfile}
+            />
+          }
           action={
             (variant !== "reply" || isMyPost) && (
               <>
@@ -246,14 +259,18 @@ function PostCard({
             )
           }
           title={
-            <Typography fontWeight="bold" color="#fff">
-              {real_name}
-            </Typography>
+            <Box onClick={goToProfile} sx={{ cursor: "pointer" }}>
+              <Typography fontWeight="bold" color="#fff">
+                {real_name}
+              </Typography>
+            </Box>
           }
           subheader={
-            <Typography variant="body2" color="#ccc">
-              @{username} · {date}
-            </Typography>
+            <Box onClick={goToProfile} sx={{ cursor: "pointer" }}>
+              <Typography variant="body2" color="#ccc">
+                @{username} · {date}
+              </Typography>
+            </Box>
           }
         />
 
@@ -276,16 +293,20 @@ function PostCard({
             sx={{ backgroundColor: "#111", border: "1px solid #2f2f2f" }}
           >
             <CardHeader
-              avatar={<Avatar src={parent.avatar_url} />}
+              avatar={<Avatar src={parent.avatar_url} sx={{ cursor: "pointer" }} onClick={goToProfile} />}
               title={
-                <Typography fontWeight="bold" color="#fff">
-                  {parent.real_name}
-                </Typography>
+                <Box onClick={goToProfile} sx={{ cursor: "pointer" }}>
+                  <Typography fontWeight="bold" color="#fff">
+                    {parent.real_name}
+                  </Typography>
+                </Box>
               }
               subheader={
-                <Typography variant="body2" color="#ccc">
-                  @{parent.username} · {parent.date}
-                </Typography>
+                <Box onClick={goToProfile} sx={{ cursor: "pointer" }}>
+                  <Typography variant="body2" color="#ccc">
+                    @{parent.username} · {parent.date}
+                  </Typography>
+                </Box>
               }
             />
             <CardContent>

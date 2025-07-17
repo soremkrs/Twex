@@ -36,6 +36,7 @@ function BookmarkFeed({
   onEditPost,
   onReplyPost,
   onBackToHome,
+  passHomeUsername,
 }) {
   const navigate = useNavigate();
   const [bookmarks, setBookmarks] = useState([]);
@@ -123,6 +124,10 @@ function BookmarkFeed({
     }
   };
 
+  const passUsername = (username) => {
+    passHomeUsername(username);
+  };
+
   return (
     <FeedContainer>
       <Box
@@ -154,6 +159,7 @@ function BookmarkFeed({
           variant="default"
           onUnbookmark={handleUnbookmark}
           viewReply={handleViewReplies}
+          passUsername={passUsername}
         />
       ))}
 

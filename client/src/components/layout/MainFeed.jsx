@@ -64,7 +64,7 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
   },
 }));
 
-function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
+function MainFeed({ currentUserId, onEditPost, onReplyPost, passHomeUsername }) {
   const [posts, setPosts] = useState([]);
   const [feedType, setFeedType] = useState("all");
   const [page, setPage] = useState(1);
@@ -134,6 +134,10 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
     navigate(`/posts/${postId}/replies`); 
   };
 
+  const passUsername = (username) => {
+    passHomeUsername(username);
+  };
+
   return (
     <FeedContainer>
       <StyledToggleGroup
@@ -156,6 +160,7 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost }) {
           refreshPosts={fetchPosts}
           onReply={onReplyPost}
           viewReply={handleViewReplies}
+          passUsername={passUsername}
         />
       ))}
 

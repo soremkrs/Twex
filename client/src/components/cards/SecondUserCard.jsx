@@ -20,7 +20,7 @@ const StyledCard = styled(Card)(({ theme }) => ({
   padding: theme.spacing(1),
 }));
 
-function SecondUserCard({ user, currentUserId }) {
+function SecondUserCard({ user, currentUserId, passUsername, refreshPosts }) {
   const { id, username, real_name, avatar_url, bio } = user;
   const [isFollowing, setIsFollowing] = useState(false);
   const navigate = useNavigate();
@@ -46,7 +46,8 @@ function SecondUserCard({ user, currentUserId }) {
   };
 
   const goToProfile = () => {
-    navigate(`/${username}`);
+    passUsername(username);
+    refreshPosts?.();
   };
 
   return (

@@ -68,7 +68,13 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
   },
 }));
 
-function ProfileFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
+function ProfileFeed({
+  currentUserId,
+  onEditPost,
+  onReplyPost,
+  onBackToHome,
+  passHomeUsername,
+}) {
   const { username } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -211,9 +217,11 @@ function ProfileFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
       setLoading(false);
     }
   };
-  console.log("current", currentUserId);
-  console.log("items", items[0]?.user_id);
-  
+
+  const passUsername = (username) => {
+    passHomeUsername(username);
+  };
+
   return (
     <ProfileContainer>
       {!currentUserId || (loading && page === 1) ? (
@@ -223,10 +231,12 @@ function ProfileFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
       ) : (
         <>
           <Box
-            display="flex"
-            alignItems="center"
-            cursor="pointer"
-            mb={2}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              cursor: "pointer",
+              mb: 2,
+            }}
             onClick={onBackToHome}
           >
             <Typography fontSize="1.5rem" mr={1}>
@@ -313,6 +323,7 @@ function ProfileFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
                   refreshPosts={fetchTabItems}
                   onReply={onReplyPost}
                   viewReply={handleViewReplies}
+                  passUsername={passUsername}
                   variant="default"
                 />
               ))}
@@ -349,6 +360,7 @@ function ProfileFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
                     refreshPosts={refreshAllReplies}
                     onReply={onReplyPost}
                     viewReply={handleViewReplies}
+                    passUsername={passUsername}
                   />
                   <Box
                     mt={5}
@@ -362,7 +374,7 @@ function ProfileFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
                 </Box>
               ))}
 
-              {selectedTab === "likes" &&
+            {selectedTab === "likes" &&
               items.map((post, index) => (
                 <PostCard
                   key={index}
@@ -373,13 +385,20 @@ function ProfileFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome }) {
                   refreshPosts={fetchTabItems}
                   onReply={onReplyPost}
                   viewReply={handleViewReplies}
+                  passUsername={passUsername}
                   variant="default"
                 />
               ))}
 
-              {selectedTab === "following" &&
+            {selectedTab === "following" &&
               items.map((user, index) => (
-                <SecondUserCard key={index} user={user} currentUserId={currentUserId} />
+                <SecondUserCard
+                  key={index}
+                  user={user}
+                  currentUserId={currentUserId}
+                  passUsername={passUsername}
+                  refreshPosts={fetchTabItems}
+                />
               ))}
 
             {hasMore && !loading && (

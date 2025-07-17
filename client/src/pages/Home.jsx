@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Box } from "@mui/material";
 import LeftSidebar from "../components/layout/LeftSidebar";
@@ -13,6 +13,7 @@ function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
+  const [userProfile, setUserProfile] = useState(null);
 
   const path = location.pathname;
 
@@ -33,7 +34,10 @@ function Home() {
   };
 
   const openProfilePage = () => {
-    navigate(`/${user.username}`);
+    if (user?.username) {
+      setUserProfile(user.username);
+      navigate(`/${user.username}`);
+    }
   };
 
   const openPostModal = () => {
@@ -54,9 +58,14 @@ function Home() {
     });
   };
 
+  const handleOpenUserProfile = (username) => {
+    setUserProfile(username);
+    navigate(`/${username}`);
+  };
+
   const isBookmarkView = path === "/bookmarks";
   const isReplies = path.startsWith("/posts/") && path.endsWith("/replies");
-  const isProfileView = path === `/${user?.username}`;
+  const isProfileView = path === `/${userProfile}`;
 
   return (
     <Box display="flex" justifyContent="center" maxWidth="1200px" mx="auto">
@@ -75,6 +84,7 @@ function Home() {
           onEditPost={openEditPostModal}
           onReplyPost={openReplyModal}
           onBackToHome={openHomePage}
+          passHomeUsername={handleOpenUserProfile}
         />
       ) : isReplies ? (
         <ReplyFeed
@@ -82,6 +92,7 @@ function Home() {
           onEditPost={openEditPostModal}
           onReplyPost={openReplyModal}
           onBackToHome={openHomePage}
+          passHomeUsername={handleOpenUserProfile}
         />
       ) : isProfileView ? (
         <ProfileFeed
@@ -89,12 +100,14 @@ function Home() {
           onEditPost={openEditPostModal}
           onReplyPost={openReplyModal}
           onBackToHome={openHomePage}
+          passHomeUsername={handleOpenUserProfile}
         />
       ) : (
         <MainFeed
           currentUserId={user?.id}
           onEditPost={openEditPostModal}
           onReplyPost={openReplyModal}
+          passHomeUsername={handleOpenUserProfile}
         />
       )}
 
