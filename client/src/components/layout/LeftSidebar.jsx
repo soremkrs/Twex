@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Box, Button, Typography, Stack } from "@mui/material";
+import React from "react";
+import { Box, Button, Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import UserCard from "../cards/UserCard";
 import TXLogo from "../../assets/TXLogo.svg";
@@ -32,34 +32,50 @@ const NavButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-function LeftSidebar(props) {
+function LeftSidebar({ onClickHome, onClickExplore, onClickNotifications, onClickBookmarks, onClickProfile, onClickPost, hasNewNotification }) {
   const navItems = [
     {
       label: "Home",
       icon: <HomeIcon sx={{ fontSize: 30 }} />,
-      onClick: props.onClickHome,
+      onClick: onClickHome,
     },
     {
       label: "Explore",
       icon: <ExploreIcon sx={{ fontSize: 30 }} />,
-      onClick: props.onClickExplore,
+      onClick: onClickExplore,
     },
     {
       label: "Notifications",
-      icon: <NotificationsIcon sx={{ fontSize: 30 }} />,
-      onClick: props.onClickNotifications,
+      icon: (
+        <Box position="relative">
+          <NotificationsIcon sx={{ fontSize: 30 }} />
+          {hasNewNotification && (
+            <Box
+              position="absolute"
+              top={0}
+              right={0}
+              width={10}
+              height={10}
+              bgcolor="#1DA1F2"
+              borderRadius="50%"
+            />
+          )}
+        </Box>
+      ),
+      onClick: onClickNotifications,
     },
     {
       label: "Bookmarks",
       icon: <BookmarkIcon sx={{ fontSize: 30 }} />,
-      onClick: props.onClickBookmarks,
+      onClick: onClickBookmarks,
     },
     {
       label: "Profile",
       icon: <PersonIcon sx={{ fontSize: 30 }} />,
-      onClick: props.onClickProfile,
+      onClick: onClickProfile,
     },
   ];
+
 
   return (
     <Box
@@ -93,7 +109,7 @@ function LeftSidebar(props) {
         </Stack>
       </Box>
       <Box display="flex" flexDirection="column" gap={5}>
-        <PostButton onClick={props.onClickPost} />
+        <PostButton onClick={onClickPost} />
         <UserCard />
       </Box>
     </Box>

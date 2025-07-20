@@ -12,6 +12,7 @@ import PostCard from "../cards/PostCard";
 import axiosInstance from "../../utils/axiosConfig";
 import LoadingModal from "../modals/LoadingModal";
 import { useNavigate } from "react-router-dom";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // Styled Components
 const FeedContainer = styled(Box)(({ theme }) => ({
@@ -77,6 +78,7 @@ function MainFeed({
   const [loading, setLoading] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const navigate = useNavigate();
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const observer = useRef();
 
@@ -96,7 +98,9 @@ function MainFeed({
 
   const fetchPosts = async () => {
     try {
-      setLoading(true);
+      if (page === 1) setInitialLoading(true);
+      else setLoading(true);
+
       const res = await axiosInstance.get(
         `/posts?type=${feedType}&page=${page}`
       );
@@ -106,6 +110,7 @@ function MainFeed({
     } catch (err) {
       console.error("Fetch error:", err);
     } finally {
+      setInitialLoading(false);
       setLoading(false);
     }
   };
@@ -146,7 +151,6 @@ function MainFeed({
   const refreshAllMainFeed = async () => {
     setLoading(true);
     try {
-      
       // Reset to page 1
       setPage(1);
 
@@ -192,7 +196,13 @@ function MainFeed({
       ))}
 
       {hasMore && !loading && <Box ref={lastPostRef} sx={{ height: 1 }} />}
-      {loading && <LoadingModal />}
+      {initialLoading && page === 1 ? (
+        <LoadingModal />
+      ) : loading ? (
+        <Box display="flex" justifyContent="center" py={3}>
+          <CircularProgress size={28} sx={{ color: "#1d9bf0" }} />
+        </Box>
+      ) : null}
 
       {!hasMore && !loading && (
         <Typography align="center" color="gray" py={2}>

@@ -17,6 +17,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuthContext";
 import SecondUserCard from "../cards/SecondUserCard";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const ProfileContainer = styled(Box)(({ theme }) => ({
   flex: 1,
@@ -84,6 +85,7 @@ function ProfileFeed({
   const [selectedTab, setSelectedTab] = useState("posts");
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -144,7 +146,8 @@ function ProfileFeed({
 
   const fetchTabItems = useCallback(async () => {
     if (!profileUser?.id) return;
-    setLoading(true);
+    if (page === 1) setInitialLoading(true);
+    else setLoading(true);
     try {
       let res;
       if (selectedTab === "posts") {
@@ -490,7 +493,13 @@ function ProfileFeed({
             {hasMore && !loading && (
               <Box ref={lastItemRef} sx={{ height: 1 }} />
             )}
-            {loading && <LoadingModal />}
+            {initialLoading && page === 1 ? (
+              <LoadingModal />
+            ) : loading ? (
+              <Box display="flex" justifyContent="center" py={3}>
+                <CircularProgress size={28} sx={{ color: "#1d9bf0" }} />
+              </Box>
+            ) : null}
 
             {!hasMore && !loading && (
               <Typography align="center" color="gray" py={2}>

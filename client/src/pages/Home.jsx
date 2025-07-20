@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Box } from "@mui/material";
 import LeftSidebar from "../components/layout/LeftSidebar";
@@ -8,15 +8,32 @@ import { useAuth } from "../contexts/useAuthContext";
 import BookmarkFeed from "../components/layout/BookmarkFeed";
 import ReplyFeed from "../components/layout/ReplyFeed";
 import ProfileFeed from "../components/layout/ProfileFeed";
+import NotificationFeed from "../components/layout/NotificationsFeed";
+import axiosInstance from "../utils/axiosConfig";
 
 function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const [userProfile, setUserProfile] = useState(null);
   const { username } = useParams();
+  const [hasNewNotification, setHasNewNotification] = useState(false);
 
   const path = location.pathname;
+
+  useEffect(() => {
+    const lastSeen =
+      localStorage.getItem("lastNotificationCheck") ||
+      new Date(0).toISOString();
+
+    axiosInstance
+      .get("/notifications/check", {
+        params: { lastSeen },
+      })
+      .then((res) => {
+        setHasNewNotification(res.data.hasNew);
+      })
+      .catch((err) => console.error(err));
+  }, []);
 
   const openHomePage = () => {
     navigate("/home");
@@ -27,6 +44,8 @@ function Home() {
   };
 
   const openNotificationPage = () => {
+    localStorage.setItem("lastNotificationCheck", new Date().toISOString());
+    setHasNewNotification(false);
     navigate("/notifications");
   };
 
@@ -36,7 +55,6 @@ function Home() {
 
   const openProfilePage = () => {
     if (user?.username) {
-      setUserProfile(user.username);
       navigate(`/${user.username}`);
     }
   };
@@ -60,7 +78,6 @@ function Home() {
   };
 
   const handleOpenUserProfile = ({ clickedUser, parentUser = null }) => {
-    setUserProfile(clickedUser);
     navigate(`/${clickedUser}`);
   };
 
@@ -68,6 +85,7 @@ function Home() {
   const isReplies = path.startsWith("/posts/") && path.endsWith("/replies");
   const isProfileView =
     !!username && path === `/${username}` && !isReplies && !isBookmarkView;
+  const isNotificationView = path === "/notifications";
 
   return (
     <Box display="flex" justifyContent="center" maxWidth="1200px" mx="auto">
@@ -78,6 +96,7 @@ function Home() {
         onClickBookmarks={openBookmarksPage}
         onClickProfile={openProfilePage}
         onClickPost={openPostModal}
+        hasNewNotification={hasNewNotification}
       />
       {/* FEED AREA */}
       {isBookmarkView ? (
@@ -101,6 +120,12 @@ function Home() {
           currentUserId={user?.id}
           onEditPost={openEditPostModal}
           onReplyPost={openReplyModal}
+          onBackToHome={openHomePage}
+          passHomeUsername={handleOpenUserProfile}
+        />
+      ) : isNotificationView ? (
+        <NotificationFeed
+          currentUserId={user?.id}
           onBackToHome={openHomePage}
           passHomeUsername={handleOpenUserProfile}
         />

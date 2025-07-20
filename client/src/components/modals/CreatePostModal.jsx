@@ -102,12 +102,19 @@ function CreatePostModal() {
           "Content-Type": "multipart/form-data",
         },
       });
+
+      navigate(-1);
+
+       // Delay then refresh parent page
+      setTimeout(() => {
+        navigate(0); // Refresh current page
+      }, 50);
+      
     } catch (err) {
       alert("Failed to post");
       console.error(err);
     } finally {
       setLoading(false);
-      navigate(-1);
     }
   };
 

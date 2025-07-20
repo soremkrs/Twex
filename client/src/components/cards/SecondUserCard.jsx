@@ -18,8 +18,14 @@ const StyledCard = styled(Card)(({ theme }) => ({
   padding: theme.spacing(1),
 }));
 
-function SecondUserCard({ user, currentUserId, passUsername, refreshPosts }) {
-  const { id, username, real_name, avatar_url, bio } = user;
+function SecondUserCard({
+  user,
+  currentUserId,
+  passUsername,
+  refreshPosts,
+  notifications,
+}) {
+  const { id, username, real_name, avatar_url, bio, date } = user;
   const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
@@ -59,7 +65,10 @@ function SecondUserCard({ user, currentUserId, passUsername, refreshPosts }) {
           />
         }
         title={
-          <Box onClick={() => goToProfile({ clickedUser: username })} sx={{ cursor: "pointer" }}>
+          <Box
+            onClick={() => goToProfile({ clickedUser: username })}
+            sx={{ cursor: "pointer" }}
+          >
             <Typography fontWeight="bold" color="#fff">
               {real_name}
             </Typography>
@@ -69,24 +78,30 @@ function SecondUserCard({ user, currentUserId, passUsername, refreshPosts }) {
           </Box>
         }
         action={
-          currentUserId !== id && (
+          currentUserId !== id && !notifications ? (
             <Button
               size="small"
               onClick={handleFollowToggle}
               variant="outlined"
               sx={{
-                  color: isFollowing ? "#fff" : "white",
-                  backgroundColor: isFollowing ? "#4A99E9" : "transparent",
-                  borderRadius: "100px",
-                  border: "2px solid #333",
-                  textTransform: "none",
-                  "&:hover": {
-                    backgroundColor: isFollowing ? "#3a7cc7" : "#111",
-                  },
-                }}
+                color: isFollowing ? "#fff" : "white",
+                backgroundColor: isFollowing ? "#4A99E9" : "transparent",
+                borderRadius: "100px",
+                border: "2px solid #333",
+                textTransform: "none",
+                "&:hover": {
+                  backgroundColor: isFollowing ? "#3a7cc7" : "#111",
+                },
+              }}
             >
               {isFollowing ? "Unfollow" : "Follow"}
             </Button>
+          ) : (
+            <Box px={2} mt={2}>
+              <Typography variant="body2" color="#ccc">
+                {real_name || "Noname user"} posted a new update · {date}
+              </Typography>
+            </Box>
           )
         }
       />
