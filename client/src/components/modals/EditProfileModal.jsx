@@ -182,6 +182,11 @@ function EditProfileModal() {
       navigate( -1, {
         state: { user },
       });
+
+      // Delay then refresh parent page
+      setTimeout(() => {
+        navigate(0); // Refresh current page
+      }, 50);
     } catch (err) {
       alert("Failed to save profile");
       console.error(err);

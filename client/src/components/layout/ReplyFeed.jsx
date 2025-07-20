@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Fab } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import axiosInstance from "../../utils/axiosConfig";
 import PostCard from "../cards/PostCard";
@@ -33,7 +33,6 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
 
 function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passHomeUsername }) {
   const { id: postId } = useParams();
-  const navigate = useNavigate();
 
   const [parentPost, setParentPost] = useState(null);
   const [replies, setReplies] = useState([]);

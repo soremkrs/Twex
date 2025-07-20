@@ -141,8 +141,8 @@ function PostCard({
     }
   };
 
-  const goToProfile = () => {
-    passUsername(username);
+  const goToProfile = ({ clickedUser, parentUser }) => {
+    passUsername({ clickedUser, parentUser });
     refreshPosts?.();
   };
 
@@ -155,7 +155,7 @@ function PostCard({
             <Avatar
               src={avatar_url}
               sx={{ cursor: "pointer" }}
-              onClick={goToProfile}
+              onClick={() => goToProfile({ clickedUser: username })}
             />
           }
           action={
@@ -259,14 +259,14 @@ function PostCard({
             )
           }
           title={
-            <Box onClick={goToProfile} sx={{ cursor: "pointer" }}>
+            <Box onClick={() => goToProfile({ clickedUser: username })} sx={{ cursor: "pointer" }}>
               <Typography fontWeight="bold" color="#fff">
                 {real_name}
               </Typography>
             </Box>
           }
           subheader={
-            <Box onClick={goToProfile} sx={{ cursor: "pointer" }}>
+            <Box onClick={() => goToProfile({ clickedUser: username })} sx={{ cursor: "pointer" }}>
               <Typography variant="body2" color="#ccc">
                 @{username} · {date}
               </Typography>
@@ -293,16 +293,16 @@ function PostCard({
             sx={{ backgroundColor: "#111", border: "1px solid #2f2f2f" }}
           >
             <CardHeader
-              avatar={<Avatar src={parent.avatar_url} sx={{ cursor: "pointer" }} onClick={goToProfile} />}
+              avatar={<Avatar src={parent.avatar_url} sx={{ cursor: "pointer" }} onClick={() => goToProfile({ clickedUser: parent.username, parentUser: username })} />}
               title={
-                <Box onClick={goToProfile} sx={{ cursor: "pointer" }}>
+                <Box onClick={() => goToProfile({ clickedUser: parent.username, parentUser: username })} sx={{ cursor: "pointer" }}>
                   <Typography fontWeight="bold" color="#fff">
                     {parent.real_name}
                   </Typography>
                 </Box>
               }
               subheader={
-                <Box onClick={goToProfile} sx={{ cursor: "pointer" }}>
+                <Box onClick={() => goToProfile({ clickedUser: parent.username, parentUser: username })} sx={{ cursor: "pointer" }}>
                   <Typography variant="body2" color="#ccc">
                     @{parent.username} · {parent.date}
                   </Typography>

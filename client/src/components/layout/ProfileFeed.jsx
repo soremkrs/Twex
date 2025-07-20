@@ -83,6 +83,7 @@ function ProfileFeed({
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState("posts");
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -108,18 +109,31 @@ function ProfileFeed({
   const isCurrentUser = profileUser && currentUserId === profileUser.id;
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    if (!profileUser || !currentUserId || profileUser.id === currentUserId)
+      return;
+
+    axiosInstance
+      .get(`/following/${profileUser.id}`)
+      .then((res) => {
+        setIsFollowing(res.data.isFollowing);
+      })
+      .catch((err) => console.error("Follow check error", err));
+  }, [profileUser, currentUserId]);
+
+  const fetchProfileUser = async () => {
+    try {
       setLoading(true);
-      try {
-        const res = await axiosInstance.get(`/${username}/profile`);
-        setProfileUser(res.data);
-      } catch (err) {
-        console.error("Profile error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
+      const res = await axiosInstance.get(`/${username}/profile`);
+      setProfileUser(res.data);
+    } catch (err) {
+      console.error("Profile error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfileUser();
   }, [username]);
 
   useEffect(() => {
@@ -149,12 +163,17 @@ function ProfileFeed({
         res = await axiosInstance.get(
           `/users/${profileUser.id}/following?page=${page}`
         );
+      } else if (selectedTab === "followers") {
+        res = await axiosInstance.get(
+          `/users/${profileUser.id}/followers?page=${page}`
+        );
       }
       const newItems =
         res.data.posts ||
         res.data.replies ||
         res.data.likes ||
         res.data.following ||
+        res.data.followers ||
         [];
       setItems((prev) => (page === 1 ? newItems : [...prev, ...newItems]));
       setHasMore(newItems.length > 0);
@@ -218,8 +237,46 @@ function ProfileFeed({
     }
   };
 
-  const passUsername = (username) => {
-    passHomeUsername(username);
+  const passUsername = ({ clickedUser, parentUser }) => {
+    passHomeUsername({ clickedUser, parentUser });
+  };
+
+  const handleToggleFollow = async () => {
+    try {
+      if (!profileUser) return;
+      if (isFollowing) {
+        await axiosInstance.delete(`/unfollow/${profileUser.id}`);
+      } else {
+        await axiosInstance.post(`/follow/${profileUser.id}`);
+      }
+      setIsFollowing((prev) => !prev);
+
+      // Refresh tab content by resetting state (like in useEffect)
+      setItems([]);
+      setPage(1);
+      setHasMore(true);
+      fetchTabItems();
+      fetchProfileUser();
+    } catch (err) {
+      console.error("Follow/unfollow error:", err);
+    }
+  };
+
+  const refreshProfileFeed = async (currentFeedType = selectedTab) => {
+    try {
+      setLoading(true);
+      setPage(1);
+
+      const res = await axiosInstance.get(
+        `/users/${profileUser.id}/${currentFeedType}?page=1`
+      );
+      setItems(res.data.posts || []);
+      setHasMore(res.data.hasMore ?? true);
+    } catch (err) {
+      console.error("Error refreshing profile feed:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -257,7 +314,7 @@ function ProfileFeed({
               src={profileUser.avatar_url}
               sx={{ width: 64, height: 64 }}
             />
-            {isCurrentUser && (
+            {isCurrentUser ? (
               <Button
                 variant="outlined"
                 sx={{
@@ -270,6 +327,23 @@ function ProfileFeed({
                 onClick={handleEditProfile}
               >
                 Edit Profile
+              </Button>
+            ) : (
+              <Button
+                variant={isFollowing ? "contained" : "outlined"}
+                sx={{
+                  color: isFollowing ? "#fff" : "white",
+                  backgroundColor: isFollowing ? "#4A99E9" : "transparent",
+                  borderRadius: "100px",
+                  border: "2px solid #333",
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: isFollowing ? "#3a7cc7" : "#111",
+                  },
+                }}
+                onClick={handleToggleFollow}
+              >
+                {isFollowing ? "Unfollow" : "Follow"}
               </Button>
             )}
           </Box>
@@ -309,6 +383,7 @@ function ProfileFeed({
             <CustomToggleButton value="replies">Replies</CustomToggleButton>
             <CustomToggleButton value="likes">Likes</CustomToggleButton>
             <CustomToggleButton value="following">Following</CustomToggleButton>
+            <CustomToggleButton value="followers">Followers</CustomToggleButton>
           </CustomToggleButtonGroup>
 
           <Box>
@@ -320,7 +395,7 @@ function ProfileFeed({
                   currentUserId={currentUserId}
                   onDelete={handleDelete}
                   onEdit={onEditPost}
-                  refreshPosts={fetchTabItems}
+                  refreshPosts={refreshProfileFeed}
                   onReply={onReplyPost}
                   viewReply={handleViewReplies}
                   passUsername={passUsername}
@@ -391,6 +466,17 @@ function ProfileFeed({
               ))}
 
             {selectedTab === "following" &&
+              items.map((user, index) => (
+                <SecondUserCard
+                  key={index}
+                  user={user}
+                  currentUserId={currentUserId}
+                  passUsername={passUsername}
+                  refreshPosts={fetchTabItems}
+                />
+              ))}
+
+            {selectedTab === "followers" &&
               items.map((user, index) => (
                 <SecondUserCard
                   key={index}

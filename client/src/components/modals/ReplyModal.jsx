@@ -129,7 +129,12 @@ function ReplyModal() {
         },
       });
 
-      navigate(-1); // Close modal
+      navigate(-1); // Close modal first
+
+      // Delay then refresh parent page
+      setTimeout(() => {
+        navigate(0); // Refresh current page
+      }, 50);
     } catch (err) {
       alert("Failed to post reply");
       console.error(err);

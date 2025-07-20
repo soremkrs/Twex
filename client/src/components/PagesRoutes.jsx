@@ -20,7 +20,7 @@ function PagesRoutes() {
   return (
     <>
       {/* Main routes */}
-      <Routes location={backgroundLocation}>
+      <Routes location={backgroundLocation || location}>
         <Route path="/" element={<Login />} />
 
         <Route

@@ -64,7 +64,12 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
   },
 }));
 
-function MainFeed({ currentUserId, onEditPost, onReplyPost, passHomeUsername }) {
+function MainFeed({
+  currentUserId,
+  onEditPost,
+  onReplyPost,
+  passHomeUsername,
+}) {
   const [posts, setPosts] = useState([]);
   const [feedType, setFeedType] = useState("all");
   const [page, setPage] = useState(1);
@@ -131,11 +136,33 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost, passHomeUsername }) 
   };
 
   const handleViewReplies = (postId) => {
-    navigate(`/posts/${postId}/replies`); 
+    navigate(`/posts/${postId}/replies`);
   };
 
   const passUsername = (username) => {
     passHomeUsername(username);
+  };
+
+  const refreshAllMainFeed = async () => {
+    setLoading(true);
+    try {
+      
+      // Reset to page 1
+      setPage(1);
+
+      // Fetch posts page 1 from your backend
+      const res = await axiosInstance.get(`/posts?page=1&feedType=${feedType}`);
+
+      // Replace the current posts with the new ones
+      setPosts(res.data.posts || []);
+
+      // Reset hasMore according to backend response (true if more pages available)
+      setHasMore(res.data.hasMore ?? true);
+    } catch (err) {
+      console.error("Error refreshing main feed:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -157,7 +184,7 @@ function MainFeed({ currentUserId, onEditPost, onReplyPost, passHomeUsername }) 
           currentUserId={currentUserId}
           onDelete={handleDelete}
           onEdit={onEditPost}
-          refreshPosts={fetchPosts}
+          refreshPosts={refreshAllMainFeed}
           onReply={onReplyPost}
           viewReply={handleViewReplies}
           passUsername={passUsername}

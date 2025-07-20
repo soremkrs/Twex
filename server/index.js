@@ -733,10 +733,9 @@ app.get("/api/:username/profile", async (req, res) => {
   const { username } = req.params;
 
   try {
-    const userRes = await db.query(
-      `SELECT * FROM users WHERE username = $1`,
-      [username]
-    );
+    const userRes = await db.query(`SELECT * FROM users WHERE username = $1`, [
+      username,
+    ]);
 
     if (userRes.rows.length === 0) {
       return res.status(404).json({ error: "User not found" });
@@ -744,11 +743,16 @@ app.get("/api/:username/profile", async (req, res) => {
 
     const user = userRes.rows[0];
 
-    const [tweetCountRes, followerCountRes, followingCountRes] = await Promise.all([
-      db.query(`SELECT COUNT(*) FROM tweets WHERE user_id = $1`, [user.id]),
-      db.query(`SELECT COUNT(*) FROM follows WHERE following_id = $1`, [user.id]),
-      db.query(`SELECT COUNT(*) FROM follows WHERE follower_id = $1`, [user.id]),
-    ]);
+    const [tweetCountRes, followerCountRes, followingCountRes] =
+      await Promise.all([
+        db.query(`SELECT COUNT(*) FROM tweets WHERE user_id = $1`, [user.id]),
+        db.query(`SELECT COUNT(*) FROM follows WHERE following_id = $1`, [
+          user.id,
+        ]),
+        db.query(`SELECT COUNT(*) FROM follows WHERE follower_id = $1`, [
+          user.id,
+        ]),
+      ]);
 
     const tweet_count = parseInt(tweetCountRes.rows[0].count, 10);
     const follower_count = parseInt(followerCountRes.rows[0].count, 10);
@@ -767,7 +771,8 @@ app.get("/api/:username/profile", async (req, res) => {
 });
 
 app.get("/api/users/:id/posts", async (req, res) => {
-  if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+  if (!req.isAuthenticated())
+    return res.status(401).json({ message: "Unauthorized" });
 
   const { id } = req.params;
   const page = parseInt(req.query.page) || 1;
@@ -815,9 +820,9 @@ app.get("/api/users/:id/posts", async (req, res) => {
   }
 });
 
-
 app.get("/api/users/:id/replies", async (req, res) => {
-  if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+  if (!req.isAuthenticated())
+    return res.status(401).json({ message: "Unauthorized" });
 
   const { id } = req.params;
   const page = parseInt(req.query.page) || 1;
@@ -865,10 +870,9 @@ app.get("/api/users/:id/replies", async (req, res) => {
   }
 });
 
-
-
 app.get("/api/users/:id/likes", async (req, res) => {
-  if (!req.isAuthenticated()) return res.status(401).json({ message: "Unauthorized" });
+  if (!req.isAuthenticated())
+    return res.status(401).json({ message: "Unauthorized" });
 
   const { id } = req.params;
   const page = parseInt(req.query.page) || 1;
@@ -950,6 +954,40 @@ app.get("/api/users/:id/following", async (req, res) => {
   }
 });
 
+app.get("/api/users/:id/followers", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const { id } = req.params;
+  const page = parseInt(req.query.page) || 1;
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const result = await db.query(
+      `
+      SELECT
+        u.id,
+        u.username,
+        u.real_name,
+        u.avatar_url,
+        u.bio
+      FROM follows f
+      JOIN users u ON f.follower_id = u.id
+      WHERE f.following_id = $1
+      ORDER BY f.created_at DESC
+      LIMIT $2 OFFSET $3
+      `,
+      [id, limit, offset]
+    );
+
+    res.status(200).json({ followers: result.rows });
+  } catch (err) {
+    console.error("Error fetching followers:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 passport.use(
   "local",

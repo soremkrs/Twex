@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Box } from "@mui/material";
 import LeftSidebar from "../components/layout/LeftSidebar";
 import MainFeed from "../components/layout/MainFeed";
@@ -14,6 +14,7 @@ function Home() {
   const location = useLocation();
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState(null);
+  const { username } = useParams();
 
   const path = location.pathname;
 
@@ -58,14 +59,15 @@ function Home() {
     });
   };
 
-  const handleOpenUserProfile = (username) => {
-    setUserProfile(username);
-    navigate(`/${username}`);
+  const handleOpenUserProfile = ({ clickedUser, parentUser = null }) => {
+    setUserProfile(clickedUser);
+    navigate(`/${clickedUser}`);
   };
 
   const isBookmarkView = path === "/bookmarks";
   const isReplies = path.startsWith("/posts/") && path.endsWith("/replies");
-  const isProfileView = path === `/${userProfile}`;
+  const isProfileView =
+    !!username && path === `/${username}` && !isReplies && !isBookmarkView;
 
   return (
     <Box display="flex" justifyContent="center" maxWidth="1200px" mx="auto">

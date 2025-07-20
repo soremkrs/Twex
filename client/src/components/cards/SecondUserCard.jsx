@@ -4,13 +4,11 @@ import {
   CardHeader,
   Avatar,
   Typography,
-  IconButton,
   Box,
   Button,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import axiosInstance from "../../utils/axiosConfig";
-import { useNavigate } from "react-router-dom";
 
 const StyledCard = styled(Card)(({ theme }) => ({
   backgroundColor: "#000",
@@ -23,7 +21,6 @@ const StyledCard = styled(Card)(({ theme }) => ({
 function SecondUserCard({ user, currentUserId, passUsername, refreshPosts }) {
   const { id, username, real_name, avatar_url, bio } = user;
   const [isFollowing, setIsFollowing] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     if (currentUserId !== id) {
@@ -45,8 +42,8 @@ function SecondUserCard({ user, currentUserId, passUsername, refreshPosts }) {
       .catch((err) => console.error("Follow toggle error", err));
   };
 
-  const goToProfile = () => {
-    passUsername(username);
+  const goToProfile = ({ clickedUser, parentUser }) => {
+    passUsername({ clickedUser, parentUser });
     refreshPosts?.();
   };
 
@@ -58,11 +55,11 @@ function SecondUserCard({ user, currentUserId, passUsername, refreshPosts }) {
             src={avatar_url}
             alt={real_name}
             sx={{ cursor: "pointer" }}
-            onClick={goToProfile}
+            onClick={() => goToProfile({ clickedUser: username })}
           />
         }
         title={
-          <Box onClick={goToProfile} sx={{ cursor: "pointer" }}>
+          <Box onClick={() => goToProfile({ clickedUser: username })} sx={{ cursor: "pointer" }}>
             <Typography fontWeight="bold" color="#fff">
               {real_name}
             </Typography>
@@ -78,14 +75,15 @@ function SecondUserCard({ user, currentUserId, passUsername, refreshPosts }) {
               onClick={handleFollowToggle}
               variant="outlined"
               sx={{
-                color: "#fff",
-                borderColor: "#555",
-                textTransform: "none",
-                "&:hover": {
-                  borderColor: "#888",
-                  backgroundColor: "#111",
-                },
-              }}
+                  color: isFollowing ? "#fff" : "white",
+                  backgroundColor: isFollowing ? "#4A99E9" : "transparent",
+                  borderRadius: "100px",
+                  border: "2px solid #333",
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: isFollowing ? "#3a7cc7" : "#111",
+                  },
+                }}
             >
               {isFollowing ? "Unfollow" : "Follow"}
             </Button>
