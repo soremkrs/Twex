@@ -79,29 +79,33 @@ function SecondUserCard({
         }
         action={
           currentUserId !== id && !notifications ? (
-            <Button
-              size="small"
-              onClick={handleFollowToggle}
-              variant="outlined"
-              sx={{
-                color: isFollowing ? "#fff" : "white",
-                backgroundColor: isFollowing ? "#4A99E9" : "transparent",
-                borderRadius: "100px",
-                border: "2px solid #333",
-                textTransform: "none",
-                "&:hover": {
-                  backgroundColor: isFollowing ? "#3a7cc7" : "#111",
-                },
-              }}
-            >
-              {isFollowing ? "Unfollow" : "Follow"}
-            </Button>
-          ) : (
-            <Box px={2} mt={2}>
-              <Typography variant="body2" color="#ccc">
-                {real_name || "Noname user"} posted a new update · {date}
-              </Typography>
+            <Box>
+              <Button
+                size="small"
+                onClick={handleFollowToggle}
+                variant="outlined"
+                sx={{
+                  color: isFollowing ? "#fff" : "white",
+                  backgroundColor: isFollowing ? "#4A99E9" : "transparent",
+                  borderRadius: "100px",
+                  border: "2px solid #333",
+                  textTransform: "none",
+                  "&:hover": {
+                    backgroundColor: isFollowing ? "#3a7cc7" : "#111",
+                  },
+                }}
+              >
+                {isFollowing ? "Unfollow" : "Follow"}
+              </Button>
             </Box>
+          ) : (
+            notifications && (
+              <Box px={2} mt={2}>
+                <Typography variant="body2" color="#ccc">
+                  {real_name || "Noname user"} posted a new update · {date}
+                </Typography>
+              </Box>
+            )
           )
         }
       />

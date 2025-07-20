@@ -10,6 +10,7 @@ import ReplyFeed from "../components/layout/ReplyFeed";
 import ProfileFeed from "../components/layout/ProfileFeed";
 import NotificationFeed from "../components/layout/NotificationsFeed";
 import axiosInstance from "../utils/axiosConfig";
+import SearchFeed from "../components/layout/SearchFeed";
 
 function Home() {
   const navigate = useNavigate();
@@ -86,6 +87,7 @@ function Home() {
   const isProfileView =
     !!username && path === `/${username}` && !isReplies && !isBookmarkView;
   const isNotificationView = path === "/notifications";
+  const isSearchView = path === "/explore";
 
   return (
     <Box display="flex" justifyContent="center" maxWidth="1200px" mx="auto">
@@ -99,7 +101,13 @@ function Home() {
         hasNewNotification={hasNewNotification}
       />
       {/* FEED AREA */}
-      {isBookmarkView ? (
+      {isSearchView ? (
+        <SearchFeed
+          currentUserId={user?.id}
+          onBackToHome={openHomePage}
+          passHomeUsername={handleOpenUserProfile}
+        />
+      ) : isBookmarkView ? (
         <BookmarkFeed
           currentUserId={user?.id}
           onEditPost={openEditPostModal}

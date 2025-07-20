@@ -1022,6 +1022,29 @@ app.get("/api/notifications/check", async (req, res) => {
   }
 });
 
+app.get("/api/search/users", async (req, res) => {
+   if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  const q = req.query.q;
+  if (!q) return res.json([]);
+
+  try {
+    const users = await db.query(
+      `SELECT id, username, real_name, bio, avatar_url
+       FROM users
+       WHERE username ILIKE $1 OR real_name ILIKE $1
+       LIMIT 20`,
+      [`%${q}%`]
+    );
+    res.json(users.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Search error");
+  }
+});
+
+
 
 passport.use(
   "local",
