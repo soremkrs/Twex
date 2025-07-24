@@ -40,8 +40,14 @@ function Home() {
     navigate("/home");
   };
 
-  const openExplorePage = () => {
-    navigate("/explore");
+  const openExplorePage = (passSearched) => {
+    const query = typeof passSearched === "string" ? passSearched.trim() : "";
+
+    if (query) {
+      navigate(`/explore?q=${encodeURIComponent(query)}`);
+    } else {
+      navigate("/explore");
+    }
   };
 
   const openNotificationPage = () => {
@@ -90,7 +96,7 @@ function Home() {
   const isSearchView = path === "/explore";
 
   return (
-    <Box display="flex" justifyContent="center" maxWidth="1200px" mx="auto">
+    <Box display="flex" justifyContent="center" maxWidth="auto" mx="auto">
       <LeftSidebar
         onClickHome={openHomePage}
         onClickExplore={openExplorePage}
@@ -146,7 +152,10 @@ function Home() {
         />
       )}
 
-      <RightSidebar />
+      <RightSidebar
+        passHomeUsername={handleOpenUserProfile}
+        passSearch={openExplorePage}
+      />
     </Box>
   );
 }

@@ -11,6 +11,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import SecondUserCard from "../cards/SecondUserCard";
 import axiosInstance from "../../utils/axiosConfig";
 import { debounce } from "lodash";
+import { useLocation, useSearchParams } from "react-router-dom";
 
 // Styled container like NotificationFeed
 const FeedContainer = styled(Box)(({ theme }) => ({
@@ -26,10 +27,16 @@ const FeedContainer = styled(Box)(({ theme }) => ({
 }));
 
 function SearchFeed({ onBackToHome, passHomeUsername, currentUserId }) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams] = useSearchParams();
+  const queryParam = searchParams.get("q") || "";
+
+  const [searchQuery, setSearchQuery] = useState(queryParam);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
+  useEffect(() => {
+    setSearchQuery(queryParam);
+  }, [queryParam]);
 
   // Debounced search function
   const debouncedSearch = debounce(async (query) => {
@@ -81,7 +88,11 @@ function SearchFeed({ onBackToHome, passHomeUsername, currentUserId }) {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         InputProps={{
-          sx: { color: "white", borderColor: "#444", backgroundColor: "#1d1d1d" },
+          sx: {
+            color: "white",
+            borderColor: "#444",
+            backgroundColor: "#1d1d1d",
+          },
           startAdornment: (
             <InputAdornment position="start">
               <SearchIcon sx={{ color: "#888" }} />
@@ -92,6 +103,8 @@ function SearchFeed({ onBackToHome, passHomeUsername, currentUserId }) {
           input: { color: "white" },
           mb: 3,
           "& .MuiOutlinedInput-root": {
+            backgroundColor: "transparent",
+            borderRadius: "100px",
             "& fieldset": { borderColor: "#444" },
             "&:hover fieldset": { borderColor: "#666" },
             "&.Mui-focused fieldset": { borderColor: "#4A99E9" },

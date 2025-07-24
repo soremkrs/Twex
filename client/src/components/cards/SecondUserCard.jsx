@@ -24,6 +24,7 @@ function SecondUserCard({
   passUsername,
   refreshPosts,
   notifications,
+  sideBar,
 }) {
   const { id, username, real_name, avatar_url, bio, date } = user;
   const [isFollowing, setIsFollowing] = useState(false);
@@ -39,18 +40,19 @@ function SecondUserCard({
     }
   }, [id, currentUserId]);
 
-  const handleFollowToggle = () => {
+  const handleFollowToggle = async () => {
     const endpoint = isFollowing ? `/unfollow/${id}` : `/follow/${id}`;
     const method = isFollowing ? "delete" : "post";
 
     axiosInstance[method](endpoint)
       .then(() => setIsFollowing(!isFollowing))
       .catch((err) => console.error("Follow toggle error", err));
+    if (refreshPosts?.fetchTabItems) await refreshPosts.fetchTabItems();
+    if (refreshPosts?.fetchProfileUser) await refreshPosts.fetchProfileUser();
   };
 
   const goToProfile = ({ clickedUser, parentUser }) => {
     passUsername({ clickedUser, parentUser });
-    refreshPosts?.();
   };
 
   return (
@@ -69,10 +71,28 @@ function SecondUserCard({
             onClick={() => goToProfile({ clickedUser: username })}
             sx={{ cursor: "pointer" }}
           >
-            <Typography fontWeight="bold" color="#fff">
+            <Typography
+              fontWeight="bold"
+              color="#fff"
+              sx={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: sideBar ? 50 : 100, // Adjust as needed
+              }}
+            >
               {real_name}
             </Typography>
-            <Typography variant="body2" color="#aaa">
+            <Typography
+              variant="body2"
+              color="#aaa"
+              sx={{
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                maxWidth: sideBar ? 50 : 100, // Adjust as needed
+              }}
+            >
               @{username}
             </Typography>
           </Box>
@@ -109,9 +129,19 @@ function SecondUserCard({
           )
         }
       />
-      {bio && (
+      {bio && !sideBar &&(
         <Box px={2} pb={1}>
-          <Typography variant="body2" color="#ccc">
+          <Typography
+            variant="body2"
+            color="#ccc"
+            sx={{
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              maxWidth: "100%", // or a fixed width if needed
+              display: "block",
+            }}
+          >
             {bio}
           </Typography>
         </Box>

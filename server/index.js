@@ -774,7 +774,9 @@ app.get("/api/users/:id/posts", async (req, res) => {
   if (!req.isAuthenticated())
     return res.status(401).json({ message: "Unauthorized" });
 
-  const { id } = req.params;
+  const currentUserId = req.user.id; // logged-in user
+  const profileUserId = req.params.id; // profile being viewed
+
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
@@ -793,8 +795,7 @@ app.get("/api/users/:id/posts", async (req, res) => {
         COUNT(DISTINCT likes.user_id) AS total_likes,
         COUNT(DISTINCT replies.id) AS total_replies,
         EXISTS (
-          SELECT 1 FROM likes
-          WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
+          SELECT 1 FROM likes WHERE user_id = $1 AND tweet_id = tweets.id
         ) AS liked_by_current_user,
         EXISTS (
           SELECT 1 FROM bookmarks
@@ -804,13 +805,13 @@ app.get("/api/users/:id/posts", async (req, res) => {
       JOIN users ON tweets.user_id = users.id
       LEFT JOIN likes ON likes.tweet_id = tweets.id
       LEFT JOIN replies ON replies.tweet_id = tweets.id
-      WHERE tweets.user_id = $1
+      WHERE tweets.user_id = $2
       GROUP BY tweets.id, users.id
       ORDER BY tweets.id DESC
-      LIMIT $2 OFFSET $3
+      LIMIT $3 OFFSET $4
     `;
 
-    const values = [id, limit, offset];
+    const values = [currentUserId, profileUserId, limit, offset];
 
     const result = await db.query(query, values);
     res.status(200).json({ posts: result.rows });
@@ -819,6 +820,7 @@ app.get("/api/users/:id/posts", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
 
 app.get("/api/users/:id/replies", async (req, res) => {
   if (!req.isAuthenticated())
@@ -1023,7 +1025,7 @@ app.get("/api/notifications/check", async (req, res) => {
 });
 
 app.get("/api/search/users", async (req, res) => {
-   if (!req.isAuthenticated()) {
+  if (!req.isAuthenticated()) {
     return res.status(401).json({ message: "Unauthorized" });
   }
   const q = req.query.q;
@@ -1044,6 +1046,36 @@ app.get("/api/search/users", async (req, res) => {
   }
 });
 
+// GET /api/users/suggestions?limit=5
+app.get("/api/users/suggestions", async (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    return res.status(401).json({ error: "Not authenticated" });
+  }
+
+  const currentUserId = req.user.id;
+  const limit = parseInt(req.query.limit, 10) || 5;
+
+  try {
+    // Fetch random users excluding current user and those already followed
+    const query = `
+      SELECT id, username, real_name, avatar_url, bio
+      FROM users
+      WHERE id <> $1
+      AND id NOT IN (
+        SELECT following_id FROM follows WHERE follower_id = $1
+      )
+      ORDER BY RANDOM()
+      LIMIT $2
+    `;
+    const values = [currentUserId, limit];
+    const result = await db.query(query, values);
+
+    res.status(200).json({ users: result.rows });
+  } catch (err) {
+    console.error("Error fetching suggestions:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 
 passport.use(

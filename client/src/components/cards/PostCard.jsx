@@ -61,7 +61,6 @@ function PostCard({
   const [bookmarked, setBookmarked] = React.useState(
     post.bookmarked_by_current_user
   );
-  
 
   const open = Boolean(anchorEl);
   const isMyPost = user_id === currentUserId;
@@ -97,11 +96,12 @@ function PostCard({
     axiosInstance[method](endpoint)
       .then(() => setIsFollowing(!isFollowing))
       .catch((err) => console.error("Follow toggle error", err));
+      refreshPosts?.();
   };
 
   const handleLikeToggle = () => {
     const method = liked ? "delete" : "post";
-    const url = liked ? `/unlike/${id}` : `/like/${id}`;
+    const url = liked ? `/unlike/${post.id}` : `/like/${post.id}`;
 
     axiosInstance[method](url)
       .then(() => {
@@ -259,14 +259,20 @@ function PostCard({
             )
           }
           title={
-            <Box onClick={() => goToProfile({ clickedUser: username })} sx={{ cursor: "pointer" }}>
+            <Box
+              onClick={() => goToProfile({ clickedUser: username })}
+              sx={{ cursor: "pointer" }}
+            >
               <Typography fontWeight="bold" color="#fff">
                 {real_name}
               </Typography>
             </Box>
           }
           subheader={
-            <Box onClick={() => goToProfile({ clickedUser: username })} sx={{ cursor: "pointer" }}>
+            <Box
+              onClick={() => goToProfile({ clickedUser: username })}
+              sx={{ cursor: "pointer" }}
+            >
               <Typography variant="body2" color="#ccc">
                 @{username} · {date}
               </Typography>
@@ -293,16 +299,43 @@ function PostCard({
             sx={{ backgroundColor: "#111", border: "1px solid #2f2f2f" }}
           >
             <CardHeader
-              avatar={<Avatar src={parent.avatar_url} sx={{ cursor: "pointer" }} onClick={() => goToProfile({ clickedUser: parent.username, parentUser: username })} />}
+              avatar={
+                <Avatar
+                  src={parent.avatar_url}
+                  sx={{ cursor: "pointer" }}
+                  onClick={() =>
+                    goToProfile({
+                      clickedUser: parent.username,
+                      parentUser: username,
+                    })
+                  }
+                />
+              }
               title={
-                <Box onClick={() => goToProfile({ clickedUser: parent.username, parentUser: username })} sx={{ cursor: "pointer" }}>
+                <Box
+                  onClick={() =>
+                    goToProfile({
+                      clickedUser: parent.username,
+                      parentUser: username,
+                    })
+                  }
+                  sx={{ cursor: "pointer" }}
+                >
                   <Typography fontWeight="bold" color="#fff">
                     {parent.real_name}
                   </Typography>
                 </Box>
               }
               subheader={
-                <Box onClick={() => goToProfile({ clickedUser: parent.username, parentUser: username })} sx={{ cursor: "pointer" }}>
+                <Box
+                  onClick={() =>
+                    goToProfile({
+                      clickedUser: parent.username,
+                      parentUser: username,
+                    })
+                  }
+                  sx={{ cursor: "pointer" }}
+                >
                   <Typography variant="body2" color="#ccc">
                     @{parent.username} · {parent.date}
                   </Typography>

@@ -214,7 +214,7 @@ function ProfileFeed({
   const handleDelete = async (id) => {
     try {
       await axiosInstance.delete(`/delete/posts/${id}`);
-      setPosts((prev) => prev.filter((p) => p.id !== id));
+      setItems((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -231,7 +231,6 @@ function ProfileFeed({
         `/users/${profileUser.id}/replies?page=1`
       );
       setItems(res.data.replies || []);
-      setPage(1);
       setHasMore(true);
     } catch (err) {
       console.error("Error refreshing bookmarks:", err);
@@ -268,8 +267,6 @@ function ProfileFeed({
   const refreshProfileFeed = async (currentFeedType = selectedTab) => {
     try {
       setLoading(true);
-      setPage(1);
-
       const res = await axiosInstance.get(
         `/users/${profileUser.id}/${currentFeedType}?page=1`
       );
@@ -277,6 +274,21 @@ function ProfileFeed({
       setHasMore(res.data.hasMore ?? true);
     } catch (err) {
       console.error("Error refreshing profile feed:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshLikedPosts = async () => {
+    try {
+      setLoading(true);
+      const res = await axiosInstance.get(
+        `/users/${profileUser.id}/likes?page=1`
+      );
+      setItems(res.data.likes || []);
+      setHasMore(res.data.hasMore ?? true);
+    } catch (err) {
+      console.error("Error refreshing liked posts:", err);
     } finally {
       setLoading(false);
     }
@@ -455,12 +467,12 @@ function ProfileFeed({
             {selectedTab === "likes" &&
               items.map((post, index) => (
                 <PostCard
-                  key={index}
+                  key={post.id}
                   post={post}
                   currentUserId={currentUserId}
                   onDelete={handleDelete}
                   onEdit={onEditPost}
-                  refreshPosts={fetchTabItems}
+                  refreshPosts={refreshLikedPosts}
                   onReply={onReplyPost}
                   viewReply={handleViewReplies}
                   passUsername={passUsername}
@@ -475,7 +487,7 @@ function ProfileFeed({
                   user={user}
                   currentUserId={currentUserId}
                   passUsername={passUsername}
-                  refreshPosts={fetchTabItems}
+                  refreshPosts={{fetchTabItems, fetchProfileUser}}
                 />
               ))}
 
@@ -486,7 +498,7 @@ function ProfileFeed({
                   user={user}
                   currentUserId={currentUserId}
                   passUsername={passUsername}
-                  refreshPosts={fetchTabItems}
+                  refreshPosts={{fetchTabItems, fetchProfileUser}}
                 />
               ))}
 
