@@ -2,7 +2,7 @@ import express from "express";
 import pg from "pg";
 import bcrypt from "bcrypt";
 import passport from "passport";
-import { Strategy } from "passport-local";
+import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
@@ -469,7 +469,10 @@ app.post("/api/auth/signup", async (req, res) => {
       );
 
       const newUser = result.rows[0];
-      res.status(201).json({ user: newUser });
+      req.login(newUser, (err) => {
+        if (err) return next(err);
+        return res.status(201).json({ user: newUser });
+      });
     }
   } catch (err) {
     console.error("Signup error:", err);
@@ -477,8 +480,27 @@ app.post("/api/auth/signup", async (req, res) => {
   }
 });
 
-app.post("/api/auth/signin", passport.authenticate("local"), (req, res) => {
-  res.status(201).json({ user: req.user });
+app.post("/api/auth/signin", (req, res, next) => {
+  passport.authenticate("local", async (err, user, info) => {
+    if (err) {
+      console.error("Auth error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: info?.message || "Login failed" });
+    }
+
+    req.login(user, (loginErr) => {
+      if (loginErr) {
+        console.error("Login session error:", loginErr);
+        return res.status(500).json({ message: "Login failed" });
+      }
+
+      const { password, ...safeUser } = user;
+      res.status(200).json({ user: safeUser });
+    });
+  })(req, res, next);
 });
 
 app.post("/api/profile/:id", async (req, res) => {
@@ -821,7 +843,6 @@ app.get("/api/users/:id/posts", async (req, res) => {
   }
 });
 
-
 app.get("/api/users/:id/replies", async (req, res) => {
   if (!req.isAuthenticated())
     return res.status(401).json({ message: "Unauthorized" });
@@ -1077,71 +1098,33 @@ app.get("/api/users/suggestions", async (req, res) => {
   }
 });
 
-
 passport.use(
   "local",
-  new Strategy(async function verify(username, password, cb) {
-    try {
-      const result = await db.query(
-        "SELECT * FROM users WHERE username = $1 ",
-        [username]
-      );
-      if (result.rows.length > 0) {
-        const user = result.rows[0];
-        const storedHashedPassword = user.password;
-        bcrypt.compare(password, storedHashedPassword, (err, valid) => {
-          if (err) {
-            console.error("Error comparing passwords:", err);
-            return cb(err);
-          } else {
-            if (valid) {
-              return cb(null, user);
-            } else {
-              return cb(null, false);
-            }
-          }
-        });
-      } else {
-        return cb("User not found!");
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  })
-);
-
-passport.use(
-  new GoogleStrategy(
+  new LocalStrategy(
     {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:3000/api/auth/google/twex",
+      usernameField: "username", // or "email" if logging in via email
+      passwordField: "password",
     },
-    async (accessToken, refreshToken, profile, done) => {
+    async (username, password, done) => {
       try {
-        const email = profile.emails[0].value;
-        const username = profile.displayName;
+        const result = await db.query("SELECT * FROM users WHERE username = $1", [
+          username,
+        ]);
 
-        // Check if user already exists
-        const existingUser = await db.query(
-          "SELECT * FROM users WHERE email = $1",
-          [email]
-        );
-
-        let user;
-        if (existingUser.rows.length > 0) {
-          user = existingUser.rows[0];
-        } else {
-          // Insert new user into DB
-          const insertResult = await db.query(
-            "INSERT INTO users (username, email) VALUES ($1, $2) RETURNING *",
-            [username, email]
-          );
-          user = insertResult.rows[0];
+        if (result.rows.length === 0) {
+          return done(null, false, { message: "User not found" });
         }
 
-        return done(null, user); // Store user in session
+        const user = result.rows[0];
+        const isValid = await bcrypt.compare(password, user.password);
+
+        if (!isValid) {
+          return done(null, false, { message: "Incorrect password" });
+        }
+
+        return done(null, user);
       } catch (err) {
+        console.error("Error in local strategy:", err);
         return done(err);
       }
     }

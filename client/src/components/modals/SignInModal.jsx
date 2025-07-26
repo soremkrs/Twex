@@ -99,14 +99,14 @@ const NextButton = styled(Button)(({ theme }) => ({
     backgroundColor: "#1a8cd8",
   },
   "&.Mui-disabled": {
-    backgroundColor: "#EEEEEE", 
-    color: "black",           
-    cursor: "not-allowed",   
-    opacity: 0.6,            
+    backgroundColor: "#EEEEEE",
+    color: "black",
+    cursor: "not-allowed",
+    opacity: 0.6,
   },
 }));
 
-function CreateAccountModal() {
+function SignInModal() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 
@@ -117,7 +117,7 @@ function CreateAccountModal() {
   });
 
   const [loading, setLoading] = useState(false);
-
+  const [signupError, setSignupError] = useState("");
   const [hide, setHide] = useState(false);
 
   // Handle form input
@@ -130,6 +130,7 @@ function CreateAccountModal() {
   };
 
   const handleSubmit = async () => {
+    setSignupError("");
     setLoading(true);
     try {
       const response = await axiosInstance.post("/auth/signin", {
@@ -147,10 +148,9 @@ function CreateAccountModal() {
       });
     } catch (error) {
       if (error.response) {
-        console.error(error.response.data);
-        alert(error.response.data.message || "Sign in failed");
+        setSignupError(error.response.data.message || "Sign in failed");
       } else {
-        alert("Network error");
+        setSignupError("Network error. Please try again.");
         console.error(error);
       }
     } finally {
@@ -164,9 +164,7 @@ function CreateAccountModal() {
   };
 
   const isFormValid =
-    formData.username &&
-    formData.password &&
-    formData.username.length <= 20;
+    formData.username && formData.password && formData.username.length <= 20;
 
   return (
     <StyledDialog open aria-hidden={hide}>
@@ -176,7 +174,7 @@ function CreateAccountModal() {
         </IconButton>
       </Header>
       <Logo>
-          <img src={TXLogo} alt="Tx Logo" height={40} />
+        <img src={TXLogo} alt="Tx Logo" height={40} />
       </Logo>
       <StyledDialogContent>
         <Typography variant="h6" fontWeight={700} marginBottom={3}>
@@ -222,6 +220,14 @@ function CreateAccountModal() {
           fullWidth
         />
       </StyledDialogContent>
+      {signupError && (
+        <Typography
+          variant="subtitle1"
+          sx={{ color: "red", textAlign: "center", mt: 1 }}
+        >
+          {signupError}
+        </Typography>
+      )}
       <StyledDialogActions>
         <NextButton onClick={handleSubmit} disabled={!isFormValid}>
           Next
@@ -232,4 +238,4 @@ function CreateAccountModal() {
   );
 }
 
-export default CreateAccountModal;
+export default SignInModal;

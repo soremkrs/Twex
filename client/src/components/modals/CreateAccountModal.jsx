@@ -11,7 +11,7 @@ import {
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosConfig";
 import { styled } from "@mui/material/styles";
 import TXLogo from "../../assets/TXLogo.svg";
 import LoadingModal from "./LoadingModal";
@@ -96,15 +96,15 @@ const NextButton = styled(Button)(({ theme }) => ({
     backgroundColor: "#1a8cd8",
   },
   "&.Mui-disabled": {
-    backgroundColor: "#EEEEEE", 
-    color: "black",           
-    cursor: "not-allowed",   
-    opacity: 0.6,            
+    backgroundColor: "#EEEEEE",
+    color: "black",
+    cursor: "not-allowed",
+    opacity: 0.6,
   },
 }));
 
 function CreateAccountModal() {
-  const navigate = useNavigate();  
+  const navigate = useNavigate();
   // Form state
   const [formData, setFormData] = useState({
     username: "",
@@ -114,7 +114,7 @@ function CreateAccountModal() {
   });
 
   const [loading, setLoading] = useState(false);
-
+  const [signupError, setSignupError] = useState("");
   const [hide, setHide] = useState(false);
 
   // Handle form input
@@ -127,13 +127,10 @@ function CreateAccountModal() {
   };
 
   const handleSubmit = async () => {
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
+    setSignupError("");
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:3000/api/auth/signup", {
+      const response = await axiosInstance.post("/auth/signup", {
         username: formData.username,
         email: formData.email,
         password: formData.password,
@@ -142,13 +139,17 @@ function CreateAccountModal() {
       const user = response.data.user;
       setHide(true);
       navigate("/create-profile", {
-        state: { user, backgroundLocation: { pathname: "/" }, fromSignUp: true, },
+        state: {
+          user,
+          backgroundLocation: { pathname: "/" },
+          fromSignUp: true,
+        },
       });
     } catch (error) {
       if (error.response) {
-        alert(error.response.data.message || "Signup failed");
+        setSignupError(error.response.data.message || "Signup failed");
       } else {
-        alert("Network error");
+        setSignupError("Network error. Please try again.");
         console.error(error);
       }
     } finally {
@@ -236,16 +237,31 @@ function CreateAccountModal() {
           fullWidth
         />
       </StyledDialogContent>
-      {formData.confirmPassword && formData.confirmPassword !== formData.password && (
-        <Typography variant="subtitle1" sx={{ marginTop: 3, color: "red", textAlign: "center" }}> Password doesn't match! </Typography>
+      {formData.confirmPassword &&
+        formData.confirmPassword !== formData.password && (
+          <Typography
+            variant="subtitle1"
+            sx={{ marginTop: 3, color: "red", textAlign: "center" }}
+          >
+            {" "}
+            Password doesn't match!{" "}
+          </Typography>
+        )}
+      {signupError && (
+        <Typography
+          variant="subtitle1"
+          sx={{ color: "red", textAlign: "center", mt: 1 }}
+        >
+          {signupError}
+        </Typography>
       )}
       <StyledDialogActions>
         <NextButton onClick={handleSubmit} disabled={!isFormValid}>
           Next
         </NextButton>
       </StyledDialogActions>
-      <LoadingModal Open={loading} Message="Creating your account..."/>
-    </StyledDialog> 
+      <LoadingModal Open={loading} Message="Creating your account..." />
+    </StyledDialog>
   );
 }
 
