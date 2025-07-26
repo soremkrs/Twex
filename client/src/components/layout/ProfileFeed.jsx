@@ -213,7 +213,7 @@ function ProfileFeed({
 
   const handleDelete = async (id) => {
     try {
-      await axiosInstance.delete(`/delete/posts/${id}`);
+      await axiosInstance.delete(`/delete/post/${id}`);
       setItems((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Delete error:", err);
@@ -467,7 +467,7 @@ function ProfileFeed({
             {selectedTab === "likes" &&
               items.map((post, index) => (
                 <PostCard
-                  key={post.id}
+                  key={index}
                   post={post}
                   currentUserId={currentUserId}
                   onDelete={handleDelete}

@@ -88,7 +88,7 @@ function EditPostModal() {
     const fetchPost = async () => {
       setLoading(true);
       try {
-        const res = await axiosInstance.get(`/posts/${id}`); // Make sure your backend has this route
+        const res = await axiosInstance.get(`/post/${id}`); // Make sure your backend has this route
         const postData = res.data.post;
         setPost(postData);
         setContent(postData.content || "");
@@ -129,7 +129,7 @@ function EditPostModal() {
         formData.append("removeImage", "true"); // signal to backend to delete existing image
       }
 
-      const res = await axiosInstance.put(`/posts/${id}`, formData, {
+      const res = await axiosInstance.put(`/edit/post/${id}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

@@ -133,7 +133,7 @@ function MainFeed({
 
   const handleDelete = async (id) => {
     try {
-      await axiosInstance.delete(`/delete/posts/${id}`);
+      await axiosInstance.delete(`/delete/post/${id}`);
       setPosts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Delete error:", err);

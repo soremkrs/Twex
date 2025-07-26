@@ -164,7 +164,7 @@ function SignInModal() {
   };
 
   const isFormValid =
-    formData.username && formData.password && formData.username.length <= 20;
+    formData.username && formData.password && formData.username.length <= 100;
 
   return (
     <StyledDialog open aria-hidden={hide}>
@@ -183,13 +183,13 @@ function SignInModal() {
         <OAuthButton text="Sign in with Google" onClick={handleGoogleAuth} />
         <DividerCenter />
         <StyledTextField
-          label="Username"
+          label="Username or Email"
           name="username"
           id="username"
           autoComplete="username"
           value={formData.username}
           onChange={handleChange}
-          inputProps={{ maxLength: 20 }}
+          inputProps={{ maxLength: 100 }}
           fullWidth
           InputProps={{
             endAdornment: (
@@ -204,7 +204,7 @@ function SignInModal() {
                 <Typography variant="caption">
                   {formData.username.length}
                 </Typography>
-                <Typography variant="caption">&nbsp;/&nbsp;20</Typography>
+                <Typography variant="caption">&nbsp;/&nbsp;100</Typography>
               </Box>
             ),
           }}

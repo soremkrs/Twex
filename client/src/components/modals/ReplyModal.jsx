@@ -88,7 +88,7 @@ function ReplyModal() {
     const fetchPost = async () => {
       setLoading(true);
       try {
-        const res = await axiosInstance.get(`/posts/${id}`);
+        const res = await axiosInstance.get(`/post/${id}`);
         setPost(res.data.post);
       } catch (err) {
         console.error("Failed to load post", err);

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Fab } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import axiosInstance from "../../utils/axiosConfig";
 import PostCard from "../cards/PostCard";
@@ -32,6 +32,7 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
 }));
 
 function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passHomeUsername }) {
+  const navigate = useNavigate();
   const { id: postId } = useParams();
 
   const [parentPost, setParentPost] = useState(null);
@@ -42,7 +43,7 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passH
   const fetchReplies = async () => {
     try {
       setLoading(true);
-      const parentRes = await axiosInstance.get(`/posts/${postId}`);
+      const parentRes = await axiosInstance.get(`/post/${postId}`);
       const repliesRes = await axiosInstance.get(`/posts/${postId}/replies`);
       setParentPost(parentRes.data.post);
       setReplies(repliesRes.data.replies || []);
@@ -65,6 +66,15 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passH
 
   const passUsername = (username) => {
     passHomeUsername(username);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axiosInstance.delete(`/delete/post/${id}`);
+      navigate(-1);
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
   };
 
   return (
@@ -93,6 +103,7 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passH
           onEdit={onEditPost}
           refreshPosts={fetchReplies}
           onReply={onReplyPost}
+          onDelete={handleDelete}
           passUsername={passUsername}
           variant="default"
           hideActions

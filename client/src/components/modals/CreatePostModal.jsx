@@ -18,6 +18,7 @@ import LoadingModal from "./LoadingModal";
 import Picker from "@emoji-mart/react";
 import data from "@emoji-mart/data";
 import axiosInstance from "../../utils/axiosConfig";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   "& .MuiPaper-root": {
@@ -105,11 +106,10 @@ function CreatePostModal() {
 
       navigate(-1);
 
-       // Delay then refresh parent page
+      // Delay then refresh parent page
       setTimeout(() => {
         navigate(0); // Refresh current page
       }, 50);
-      
     } catch (err) {
       alert("Failed to post");
       console.error(err);
@@ -159,7 +159,12 @@ function CreatePostModal() {
             />
 
             {image && (
-              <Box mt={1} borderRadius={3} overflow="hidden">
+              <Box 
+                mt={1}
+                position="relative"
+                borderRadius={3}
+                overflow="hidden"
+              >
                 <img
                   src={URL.createObjectURL(image)}
                   alt="preview"
@@ -170,6 +175,19 @@ function CreatePostModal() {
                     borderRadius: "16px",
                   }}
                 />
+                <IconButton
+                  onClick={() => setImage(null)}
+                  sx={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
+                    backgroundColor: "rgba(0,0,0,0.6)",
+                    color: "white",
+                    "&:hover": { backgroundColor: "rgba(0,0,0,0.8)" },
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
               </Box>
             )}
           </Box>

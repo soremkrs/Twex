@@ -167,7 +167,7 @@ function EditProfileModal() {
 
     setLoading(true);
     try {
-      const response = await axiosInstance.post(`/edit/profile/${user.id}`, {
+      const response = await axiosInstance.put(`/edit/profile/${user.id}`, {
         real_name: formData.realName,
         avatar_url: formData.avatar,
         date_of_birth: formData.dateOfBirth,
