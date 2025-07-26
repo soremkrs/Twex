@@ -1,19 +1,27 @@
 import express from "express";
-import { db } from "../config/db.js"
-import { ensureAuthenticated } from "../middlewares/auth.js"
+import { db } from "../config/db.js";
+import { ensureAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router();
 
+// GET /:username/profile
+// Get full profile details of a user by their username,
+// including counts of tweets, followers, and following
 router.get("/:username/profile", ensureAuthenticated, async (req, res) => {
   const { username } = req.params;
+
   try {
+    // Fetch user by username
     const userRes = await db.query(`SELECT * FROM users WHERE username = $1`, [
       username,
     ]);
     if (userRes.rows.length === 0) {
+      // If no user found, return 404
       return res.status(404).json({ error: "User not found" });
     }
     const user = userRes.rows[0];
+
+    // Fetch counts for tweets, followers, and following in parallel
     const [tweetCountRes, followerCountRes, followingCountRes] =
       await Promise.all([
         db.query(`SELECT COUNT(*) FROM tweets WHERE user_id = $1`, [user.id]),
@@ -24,9 +32,13 @@ router.get("/:username/profile", ensureAuthenticated, async (req, res) => {
           user.id,
         ]),
       ]);
+
+    // Parse counts as integers
     const tweet_count = parseInt(tweetCountRes.rows[0].count, 10);
     const follower_count = parseInt(followerCountRes.rows[0].count, 10);
     const following_count = parseInt(followingCountRes.rows[0].count, 10);
+
+    // Return user profile data with counts
     res.json({
       ...user,
       tweet_count,
@@ -39,12 +51,16 @@ router.get("/:username/profile", ensureAuthenticated, async (req, res) => {
   }
 });
 
+// GET /users/:id/posts
+// Get paginated list of tweets posted by a user
+// Includes counts for likes and replies, and flags if current user liked/bookmarked each tweet
 router.get("/users/:id/posts", ensureAuthenticated, async (req, res) => {
   const currentUserId = req.user.id; // logged-in user
-  const profileUserId = req.params.id; // profile being viewed
-  const page = parseInt(req.query.page) || 1;
-  const limit = 10;
+  const profileUserId = req.params.id; // user whose posts we fetch
+  const page = parseInt(req.query.page) || 1; // pagination page number
+  const limit = 10; // posts per page
   const offset = (page - 1) * limit;
+
   try {
     const query = `
       SELECT
@@ -76,6 +92,7 @@ router.get("/users/:id/posts", ensureAuthenticated, async (req, res) => {
     `;
     const values = [currentUserId, profileUserId, limit, offset];
     const result = await db.query(query, values);
+
     res.status(200).json({ posts: result.rows });
   } catch (err) {
     console.error("Error fetching user's posts:", err);
@@ -83,11 +100,15 @@ router.get("/users/:id/posts", ensureAuthenticated, async (req, res) => {
   }
 });
 
+// GET /users/:id/replies
+// Get paginated list of replies posted by the user
+// Each reply includes details of the replied tweet and users involved
 router.get("/users/:id/replies", ensureAuthenticated, async (req, res) => {
   const { id } = req.params;
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
+
   try {
     const result = await db.query(
       `
@@ -128,11 +149,15 @@ router.get("/users/:id/replies", ensureAuthenticated, async (req, res) => {
   }
 });
 
+// GET /users/:id/likes
+// Get paginated list of tweets liked by the user
+// Includes like and reply counts and flags if current user liked/bookmarked
 router.get("/users/:id/likes", ensureAuthenticated, async (req, res) => {
   const { id } = req.params;
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
+
   try {
     const result = await db.query(
       `
@@ -162,7 +187,7 @@ router.get("/users/:id/likes", ensureAuthenticated, async (req, res) => {
       GROUP BY t.id, u.id
       ORDER BY t.date DESC
       LIMIT $2 OFFSET $3
-    `,
+      `,
       [id, limit, offset]
     );
     res.status(200).json({ likes: result.rows });
@@ -172,11 +197,14 @@ router.get("/users/:id/likes", ensureAuthenticated, async (req, res) => {
   }
 });
 
+// GET /users/:id/following
+// Get paginated list of users that the specified user is following
 router.get("/users/:id/following", ensureAuthenticated, async (req, res) => {
   const { id } = req.params;
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
+
   try {
     const result = await db.query(
       `
@@ -201,11 +229,14 @@ router.get("/users/:id/following", ensureAuthenticated, async (req, res) => {
   }
 });
 
+// GET /users/:id/followers
+// Get paginated list of users who follow the specified user
 router.get("/users/:id/followers", ensureAuthenticated, async (req, res) => {
   const { id } = req.params;
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
+
   try {
     const result = await db.query(
       `
@@ -230,11 +261,13 @@ router.get("/users/:id/followers", ensureAuthenticated, async (req, res) => {
   }
 });
 
+// GET /users/suggestions
+// Suggest random users to follow excluding the current user and those already followed
 router.get("/users/suggestions", ensureAuthenticated, async (req, res) => {
   const currentUserId = req.user.id;
   const limit = parseInt(req.query.limit, 10) || 5;
+
   try {
-    // Fetch random users excluding current user and those already followed
     const query = `
       SELECT id, username, real_name, avatar_url, bio
       FROM users

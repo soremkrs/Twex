@@ -1,13 +1,16 @@
 import express from "express";
-import { db } from "../config/db.js"
-import { ensureAuthenticated } from "../middlewares/auth.js"
+import { db } from "../config/db.js";
+import { ensureAuthenticated } from "../middlewares/auth.js";
 
 const router = express.Router();
 
+// POST /profile/:id — update user profile (basic update, returns a success message)
 router.post("/profile/:id", ensureAuthenticated, async (req, res) => {
   const { id } = req.params;
   const { real_name, avatar_url, date_of_birth, bio } = req.body;
+
   try {
+    // Update user profile fields in the database
     await db.query(
       `UPDATE users
        SET real_name = $1,
@@ -17,6 +20,8 @@ router.post("/profile/:id", ensureAuthenticated, async (req, res) => {
        WHERE id = $5`,
       [real_name, avatar_url, date_of_birth, bio, id]
     );
+
+    // Send success response
     res.status(200).json({ message: "Profile updated" });
   } catch (err) {
     console.error("Profile update error:", err);
@@ -24,10 +29,13 @@ router.post("/profile/:id", ensureAuthenticated, async (req, res) => {
   }
 });
 
+// PUT /edit/profile/:id — update user profile with RETURNING clause (returns updated user data)
 router.put("/edit/profile/:id", ensureAuthenticated, async (req, res) => {
   const { id } = req.params;
   const { real_name, avatar_url, date_of_birth, bio } = req.body;
+
   try {
+    // Update user profile and return the updated row with formatted date_of_birth
     const result = await db.query(
       `UPDATE users
        SET real_name = $1,
@@ -38,6 +46,8 @@ router.put("/edit/profile/:id", ensureAuthenticated, async (req, res) => {
        RETURNING *, TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth`,
       [real_name, avatar_url, date_of_birth, bio, id]
     );
+
+    // Respond with the updated user data
     res.status(200).json({ user: result.rows[0] });
   } catch (err) {
     console.error("Profile update error:", err);

@@ -1,16 +1,23 @@
 import express from "express";
-import { db } from "../config/db.js"
-import { ensureAuthenticated } from "../middlewares/auth.js"
+import { db } from "../config/db.js";
+import { ensureAuthenticated } from "../middlewares/auth.js";
 import { upload } from "../config/cloudinary.js";
 
 const router = express.Router();
 
+/**
+ * GET /posts
+ * Fetch posts with optional filter:
+ * - type=all: all posts
+ * - type=following: posts only from users the current user follows
+ * Supports pagination with page query param.
+ */
 router.get("/posts", ensureAuthenticated, async (req, res) => {
   const currentUserId = req.user?.id;
   const page = parseInt(req.query.page) || 1;
   const limit = 10;
   const offset = (page - 1) * limit;
-  const filter = req.query.type || "all"; // "all" or "following"
+  const filter = req.query.type || "all"; // default to "all"
 
   try {
     let query;
@@ -30,12 +37,10 @@ router.get("/posts", ensureAuthenticated, async (req, res) => {
           COUNT(DISTINCT likes.user_id) AS total_likes,
           COUNT(DISTINCT replies.id) AS total_replies,
           EXISTS (
-            SELECT 1 FROM likes
-            WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
+            SELECT 1 FROM likes WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
           ) AS liked_by_current_user,
           EXISTS (
-            SELECT 1 FROM bookmarks
-            WHERE bookmarks.user_id = $1 AND bookmarks.tweet_id = tweets.id
+            SELECT 1 FROM bookmarks WHERE bookmarks.user_id = $1 AND bookmarks.tweet_id = tweets.id
           ) AS bookmarked_by_current_user
         FROM tweets
         JOIN users ON tweets.user_id = users.id
@@ -63,12 +68,10 @@ router.get("/posts", ensureAuthenticated, async (req, res) => {
           COUNT(DISTINCT likes.user_id) AS total_likes,
           COUNT(DISTINCT replies.id) AS total_replies,
           EXISTS (
-            SELECT 1 FROM likes
-            WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
+            SELECT 1 FROM likes WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
           ) AS liked_by_current_user,
           EXISTS (
-            SELECT 1 FROM bookmarks
-            WHERE bookmarks.user_id = $1 AND bookmarks.tweet_id = tweets.id
+            SELECT 1 FROM bookmarks WHERE bookmarks.user_id = $1 AND bookmarks.tweet_id = tweets.id
           ) AS bookmarked_by_current_user
         FROM tweets
         JOIN users ON tweets.user_id = users.id
@@ -89,6 +92,10 @@ router.get("/posts", ensureAuthenticated, async (req, res) => {
   }
 });
 
+/**
+ * GET /post/:id
+ * Fetch a single post by id
+ */
 router.get("/post/:id", ensureAuthenticated, async (req, res) => {
   const postId = req.params.id;
   try {
@@ -108,6 +115,7 @@ router.get("/post/:id", ensureAuthenticated, async (req, res) => {
       `,
       [postId]
     );
+
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Post not found" });
     } else {
@@ -119,10 +127,15 @@ router.get("/post/:id", ensureAuthenticated, async (req, res) => {
   }
 });
 
+/**
+ * POST /create/post
+ * Create a new post with optional image upload
+ */
 router.post("/create/post", ensureAuthenticated, upload.single("image"), async (req, res) => {
   const { content } = req.body;
   const imageUrl = req.file?.path || null;
-  const date = new Date().toISOString().split("T")[0];
+  const date = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
   try {
     await db.query(
       `INSERT INTO tweets (user_id, content, date, image_url) VALUES ($1, $2, $3, $4)`,
@@ -136,34 +149,41 @@ router.post("/create/post", ensureAuthenticated, upload.single("image"), async (
   }
 });
 
+/**
+ * PUT /edit/post/:id
+ * Edit an existing post if owned by the user.
+ * Supports updating content, replacing or removing the image.
+ */
 router.put("/edit/post/:id", ensureAuthenticated, upload.single("image"), async (req, res) => {
   const postId = req.params.id;
   const userId = req.user?.id;
   const { content, removeImage } = req.body;
+
   try {
-    // Check post exists and belongs to the user
-    const result = await db.query("SELECT * FROM tweets WHERE id = $1", [
-      postId,
-    ]);
+    // Check post ownership
+    const result = await db.query("SELECT * FROM tweets WHERE id = $1", [postId]);
     const post = result.rows[0];
     if (!post) return res.status(404).json({ error: "Post not found" });
-    if (post.user_id !== userId)
-      return res.status(403).json({ error: "Unauthorized" });
+    if (post.user_id !== userId) return res.status(403).json({ error: "Unauthorized" });
 
     let imageUrl = post.image_url;
-    // If a new image is uploaded, replace the old one
+
     if (req.file) {
-      // Optionally delete old image from Cloudinary here
-      imageUrl = req.file.path; // Cloudinary URL
+      // Replace with new image URL from Cloudinary upload
+      imageUrl = req.file.path;
+      // Optionally: delete old image from Cloudinary here if you track public_id
     } else if (removeImage === "true") {
-      // Remove the image if instructed
+      // Remove the image
       imageUrl = null;
-      // Optionally delete from Cloudinary if you store the public_id
+      // Optionally: delete old image from Cloudinary here
     }
-    await db.query(
-      "UPDATE tweets SET content = $1, image_url = $2 WHERE id = $3",
-      [content, imageUrl, postId]
-    );
+
+    await db.query("UPDATE tweets SET content = $1, image_url = $2 WHERE id = $3", [
+      content,
+      imageUrl,
+      postId,
+    ]);
+
     res.json({ message: "Post updated" });
   } catch (err) {
     console.error("Failed to update post", err);
@@ -171,21 +191,24 @@ router.put("/edit/post/:id", ensureAuthenticated, upload.single("image"), async 
   }
 });
 
+/**
+ * DELETE /delete/post/:id
+ * Delete a post if owned by the current user
+ */
 router.delete("/delete/post/:id", ensureAuthenticated, async (req, res) => {
   const postId = req.params.id;
   const userId = req.user.id;
+
   try {
-    // First, check if the post exists and belongs to the current user
-    const result = await db.query(
-      "SELECT * FROM tweets WHERE id = $1 AND user_id = $2",
-      [postId, userId]
-    );
+    const result = await db.query("SELECT * FROM tweets WHERE id = $1 AND user_id = $2", [
+      postId,
+      userId,
+    ]);
     if (result.rows.length === 0) {
       return res.status(403).json({ message: "You can't delete this post" });
-    } else {
-      // Delete the post
-      await db.query("DELETE FROM tweets WHERE id = $1", [postId]);
     }
+
+    await db.query("DELETE FROM tweets WHERE id = $1", [postId]);
     res.status(200).json({ message: "Post deleted" });
   } catch (err) {
     console.error("Post deletion error:", err);
@@ -193,8 +216,13 @@ router.delete("/delete/post/:id", ensureAuthenticated, async (req, res) => {
   }
 });
 
+/**
+ * GET /posts/:id/replies
+ * Get all replies to a specific post
+ */
 router.get("/posts/:id/replies", ensureAuthenticated, async (req, res) => {
   const postId = parseInt(req.params.id);
+
   try {
     const result = await db.query(
       `
@@ -214,6 +242,7 @@ router.get("/posts/:id/replies", ensureAuthenticated, async (req, res) => {
       `,
       [postId]
     );
+
     res.status(200).json({ replies: result.rows });
   } catch (err) {
     console.error("Error fetching replies:", err);
@@ -221,10 +250,15 @@ router.get("/posts/:id/replies", ensureAuthenticated, async (req, res) => {
   }
 });
 
+/**
+ * POST /replies
+ * Create a new reply to a tweet, with optional image upload
+ */
 router.post("/replies", ensureAuthenticated, upload.single("image"), async (req, res) => {
   const { content, replyTo } = req.body;
   const imageUrl = req.file?.path || null;
   const date = new Date().toISOString().split("T")[0];
+
   try {
     await db.query(
       `INSERT INTO replies (tweet_id, user_id, content, date, image_url) VALUES ($1, $2, $3, $4, $5)`,
@@ -237,14 +271,16 @@ router.post("/replies", ensureAuthenticated, upload.single("image"), async (req,
   }
 });
 
+/**
+ * DELETE /reply/:id
+ * Delete a reply if owned by the user
+ */
 router.delete("/reply/:id", ensureAuthenticated, async (req, res) => {
   const replyId = req.params.id;
   const userId = req.user.id;
+
   try {
-    // Ensure the reply exists and belongs to the user
-    const result = await db.query(`SELECT * FROM replies WHERE id = $1`, [
-      replyId,
-    ]);
+    const result = await db.query(`SELECT * FROM replies WHERE id = $1`, [replyId]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Reply not found" });
     }
@@ -252,7 +288,7 @@ router.delete("/reply/:id", ensureAuthenticated, async (req, res) => {
     if (reply.user_id !== userId) {
       return res.status(403).json({ message: "Forbidden: Not your reply" });
     }
-    // Delete the reply
+
     await db.query(`DELETE FROM replies WHERE id = $1`, [replyId]);
     res.status(200).json({ message: "Reply deleted successfully" });
   } catch (err) {
