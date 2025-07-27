@@ -76,6 +76,14 @@ function PostCard({
       .catch((err) => console.error("Follow check error", err));
   }, [user_id, isMyPost, variant]);
 
+  React.useEffect(() => {
+    setLiked(liked_by_current_user);
+  }, [liked_by_current_user]);
+
+  React.useEffect(() => {
+    setBookmarked(post.bookmarked_by_current_user);
+  }, [post.bookmarked_by_current_user]);
+
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
   const handleEdit = () => {
@@ -96,7 +104,7 @@ function PostCard({
     axiosInstance[method](endpoint)
       .then(() => setIsFollowing(!isFollowing))
       .catch((err) => console.error("Follow toggle error", err));
-      refreshPosts?.();
+    refreshPosts?.();
   };
 
   const handleLikeToggle = () => {

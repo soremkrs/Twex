@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Dialog,
@@ -13,6 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
 import TXLogo from "../../assets/TXLogo.svg";
 import OAuthButton from "../buttons/OAuthButton";
+import LoadingModal from "./LoadingModal";
 
 // Styled Components
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -70,18 +71,27 @@ const CancelButton = styled(Button)(({ theme }) => ({
 
 function OAuthModal() {
   const navigate = useNavigate();
+  const [hide, setHide] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleClose = () => {
     navigate(-1);
   };
 
   const handleGoogleAuth = () => {
-    // Initiate the real Google OAuth flow
-    window.location.href = "http://localhost:3000/api/auth/google"; // Change this to your actual endpoint
+    setLoading(true);
+    setHide(true);
+    setTimeout(() => {
+      window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+    }, 100);
   };
 
+  if (loading) {
+    return <LoadingModal Open={loading} Message="Redirecting to Google..." />;
+  }
+
   return (
-    <StyledDialog open>
+    <StyledDialog open={!hide} onClose={handleClose}>
       <Header>
         <IconButton onClick={handleClose} sx={{ color: "#fff", padding: "0" }}>
           <CloseIcon />
@@ -96,20 +106,12 @@ function OAuthModal() {
           Continue with Google
         </Typography>
         <OAuthButton text="Sign in with Google" onClick={handleGoogleAuth} />
-        <Typography
-          variant="body2"
-          textAlign="center"
-          color="#999"
-          mt={2}
-        >
+        <Typography variant="body2" textAlign="center" color="#999" mt={2}>
           You’ll be redirected to Google to complete sign-in.
         </Typography>
       </StyledDialogContent>
-
       <StyledDialogActions>
-        <CancelButton onClick={handleClose}>
-          Cancel
-        </CancelButton>
+        <CancelButton onClick={handleClose}>Cancel</CancelButton>
       </StyledDialogActions>
     </StyledDialog>
   );

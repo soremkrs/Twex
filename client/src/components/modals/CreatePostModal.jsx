@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -80,6 +80,21 @@ function CreatePostModal() {
   const [loading, setLoading] = useState(false);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
   const emojiPickerOpen = Boolean(emojiAnchorEl);
+  const [hide, setHide] = useState(false);
+  const [postError, setPostError] = useState("");
+
+  const previewUrl = useMemo(() => {
+    if (!image) return null;
+    return URL.createObjectURL(image);
+  }, [image]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleFileChange = (e) => {
     if (e.target.files[0]) {
@@ -87,7 +102,12 @@ function CreatePostModal() {
     }
   };
 
+  const handleClose = () => {
+    navigate(-1);
+  };
+
   const handlePost = async () => {
+    setPostError("");
     if (!content.trim()) return;
 
     setLoading(true);
@@ -103,30 +123,33 @@ function CreatePostModal() {
           "Content-Type": "multipart/form-data",
         },
       });
-
-      navigate(-1);
-
+      setHide(true);
+      handleClose();
       // Delay then refresh parent page
       setTimeout(() => {
         navigate(0); // Refresh current page
       }, 50);
     } catch (err) {
-      alert("Failed to post");
+      setPostError("Failed to post");
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
+  if (loading) {
+    return <LoadingModal Open={loading} Message="Posting..." />;
+  }
+
   return (
-    <StyledDialog open onClose={() => navigate(-1)}>
+    <StyledDialog open={!hide} onClose={handleClose}>
       <Box
         display="flex"
         alignItems="center"
         justifyContent="space-between"
         px={1}
       >
-        <IconButton onClick={() => navigate(-1)} sx={{ color: "#fff" }}>
+        <IconButton onClick={handleClose} sx={{ color: "#fff" }}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -158,15 +181,15 @@ function CreatePostModal() {
               onChange={(e) => setContent(e.target.value)}
             />
 
-            {image && (
-              <Box 
+            {image && previewUrl && (
+              <Box
                 mt={1}
                 position="relative"
                 borderRadius={3}
                 overflow="hidden"
               >
                 <img
-                  src={URL.createObjectURL(image)}
+                  src={previewUrl}
                   alt="preview"
                   style={{
                     width: "100%",
@@ -258,7 +281,14 @@ function CreatePostModal() {
           </Menu>
         </Box>
       </StyledDialogContent>
-      <LoadingModal Open={loading} Message="Posting..." />
+      {postError && (
+        <Typography
+          variant="subtitle1"
+          sx={{ color: "red", textAlign: "center", mt: 1 }}
+        >
+          {postError}
+        </Typography>
+      )}
     </StyledDialog>
   );
 }

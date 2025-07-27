@@ -15,6 +15,7 @@ import axiosInstance from "../../utils/axiosConfig";
 import { styled } from "@mui/material/styles";
 import TXLogo from "../../assets/TXLogo.svg";
 import LoadingModal from "./LoadingModal";
+import { useAuth } from "../../contexts/useAuthContext";
 
 // Styled Components
 const StyledDialog = styled(Dialog)(({ theme }) => ({
@@ -105,6 +106,7 @@ const NextButton = styled(Button)(({ theme }) => ({
 
 function CreateAccountModal() {
   const navigate = useNavigate();
+  const { setUser } = useAuth();
   // Form state
   const [formData, setFormData] = useState({
     username: "",
@@ -138,9 +140,9 @@ function CreateAccountModal() {
 
       const user = response.data.user;
       setHide(true);
+      setUser(user);
       navigate("/create-profile", {
         state: {
-          user,
           backgroundLocation: { pathname: "/" },
           fromSignUp: true,
         },
@@ -165,8 +167,12 @@ function CreateAccountModal() {
     formData.password === formData.confirmPassword &&
     formData.username.length <= 20;
 
+  if (loading) {
+    return <LoadingModal Open={loading} Message="Creating your account..." />;
+  }
+
   return (
-    <StyledDialog open aria-hidden={hide}>
+    <StyledDialog open={!hide} onClose={handleClose}>
       <Header>
         <IconButton onClick={handleClose} sx={{ color: "#fff", padding: "0" }}>
           <CloseIcon />
@@ -260,7 +266,6 @@ function CreateAccountModal() {
           Next
         </NextButton>
       </StyledDialogActions>
-      <LoadingModal Open={loading} Message="Creating your account..." />
     </StyledDialog>
   );
 }

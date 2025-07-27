@@ -41,8 +41,9 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passH
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const fetchReplies = async () => {
+    setLoading(true);
+
     try {
-      setLoading(true);
       const parentRes = await axiosInstance.get(`/post/${postId}`);
       const repliesRes = await axiosInstance.get(`/posts/${postId}/replies`);
       setParentPost(parentRes.data.post);

@@ -49,7 +49,7 @@ app.use(
     saveUninitialized: false, // Don't save empty sessions
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie lifespan (24 hours)
-      secure: false, // Should be true in production (with HTTPS)
+      secure: process.env.SESSION_COOKIE_SECURE === "production", // Should be true in production (with HTTPS)
       httpOnly: true, // Prevents client-side JS from accessing cookies
       sameSite: "lax", // Helps with CSRF protection while still allowing top-level navigation
     },

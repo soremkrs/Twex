@@ -15,7 +15,6 @@ import LoadingModal from "../modals/LoadingModal";
 import PostCard from "../cards/PostCard";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/useAuthContext";
 import SecondUserCard from "../cards/SecondUserCard";
 import CircularProgress from "@mui/material/CircularProgress";
 
@@ -77,7 +76,6 @@ function ProfileFeed({
   passHomeUsername,
 }) {
   const { username } = useParams();
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [profileUser, setProfileUser] = useState(null);
@@ -123,8 +121,10 @@ function ProfileFeed({
   }, [profileUser, currentUserId]);
 
   const fetchProfileUser = async () => {
+    setLoading(true);
+
     try {
-      setLoading(true);
+      
       const res = await axiosInstance.get(`/${username}/profile`);
       setProfileUser(res.data);
     } catch (err) {
@@ -200,7 +200,6 @@ function ProfileFeed({
   const handleEditProfile = () => {
     navigate("/edit-profile", {
       state: {
-        user,
         backgroundLocation: { pathname: `/${username}` },
         fromHome: false,
       },
@@ -225,8 +224,10 @@ function ProfileFeed({
   };
 
   const refreshAllReplies = async () => {
+    setLoading(true);
+
     try {
-      setLoading(true);
+      
       const res = await axiosInstance.get(
         `/users/${profileUser.id}/replies?page=1`
       );
@@ -265,8 +266,10 @@ function ProfileFeed({
   };
 
   const refreshProfileFeed = async (currentFeedType = selectedTab) => {
+    setLoading(true);
+
     try {
-      setLoading(true);
+      
       const res = await axiosInstance.get(
         `/users/${profileUser.id}/${currentFeedType}?page=1`
       );
@@ -280,8 +283,10 @@ function ProfileFeed({
   };
 
   const refreshLikedPosts = async () => {
+    setLoading(true);
+
     try {
-      setLoading(true);
+      
       const res = await axiosInstance.get(
         `/users/${profileUser.id}/likes?page=1`
       );
@@ -465,9 +470,9 @@ function ProfileFeed({
               ))}
 
             {selectedTab === "likes" &&
-              items.map((post, index) => (
+              items.map((post) => (
                 <PostCard
-                  key={index}
+                  key={post.id}
                   post={post}
                   currentUserId={currentUserId}
                   onDelete={handleDelete}

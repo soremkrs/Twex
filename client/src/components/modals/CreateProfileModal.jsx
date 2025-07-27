@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../utils/axiosConfig";
 import TXLogo from "../../assets/TXLogo.svg";
 import LoadingModal from "./LoadingModal";
@@ -114,18 +114,16 @@ const NextButton = styled(Button)(({ theme }) => ({
     backgroundColor: "#1a8cd8",
   },
   "&.Mui-disabled": {
-    backgroundColor: "#EEEEEE", 
-    color: "black",           
-    cursor: "not-allowed",   
-    opacity: 0.6,            
+    backgroundColor: "#EEEEEE",
+    color: "black",
+    cursor: "not-allowed",
+    opacity: 0.6,
   },
 }));
 
 function CreateProfileModal() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = location.state || {};
-  const { setUser } = useAuth();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     realName: "",
@@ -136,6 +134,7 @@ function CreateProfileModal() {
 
   const [loading, setLoading] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(availableAvatars[0]);
+  const [signupError, setSignupError] = useState("");
 
   const [hide, setHide] = useState(false);
 
@@ -143,9 +142,14 @@ function CreateProfileModal() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleClose = () => {
+    navigate(-1);
+  };
+
   const handleSubmit = async () => {
+    setSignupError("");
     if (!user?.id) {
-      alert("Missing user info");
+      setSignupError("Missing user info");
       return;
     }
 
@@ -159,13 +163,9 @@ function CreateProfileModal() {
       });
 
       setHide(true);
-      setUser(user);
-      navigate("/home", {
-        state: { user },
-      });
-
+      navigate("/home");
     } catch (err) {
-      alert("Failed to save profile");
+      setSignupError("Failed to save profile");
       console.error(err);
     } finally {
       setLoading(false);
@@ -178,11 +178,15 @@ function CreateProfileModal() {
     formData.bio &&
     formData.realName.length <= 20;
 
+  if (loading) {
+    return <LoadingModal Open={loading} Message="Saving your profile..." />;
+  }
+
   return (
-    <StyledDialog open aria-hidden={hide}>
+    <StyledDialog open={!hide} onClose={handleClose}>
       <Header>
         <IconButton
-          onClick={() => navigate(-1)}
+          onClick={handleClose}
           sx={{ color: "#fff", padding: "0" }}
         >
           <CloseIcon />
@@ -226,10 +230,10 @@ function CreateProfileModal() {
             endAdornment: (
               <Box
                 sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "#888",
-                    ml: 1,
+                  display: "flex",
+                  alignItems: "center",
+                  color: "#888",
+                  ml: 1,
                 }}
               >
                 <Typography variant="caption">
@@ -300,9 +304,9 @@ function CreateProfileModal() {
             endAdornment: (
               <Box
                 sx={{
-                    display: "flex",
-                    color: "#888",
-                    ml: 1,
+                  display: "flex",
+                  color: "#888",
+                  ml: 1,
                 }}
               >
                 <Typography variant="caption">
@@ -313,14 +317,19 @@ function CreateProfileModal() {
           }}
         />
       </StyledDialogContent>
-
+      {signupError && (
+        <Typography
+          variant="subtitle1"
+          sx={{ color: "red", textAlign: "center", mt: 1 }}
+        >
+          {signupError}
+        </Typography>
+      )}
       <StyledDialogActions>
         <NextButton onClick={handleSubmit} disabled={!isFormValid}>
           Finish
         </NextButton>
       </StyledDialogActions>
-
-      <LoadingModal Open={loading} Message="Saving your profile..." />
     </StyledDialog>
   );
 }

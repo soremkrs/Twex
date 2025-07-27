@@ -143,9 +143,7 @@ function SignInModal() {
       const user = response.data.user;
       setHide(true);
       setUser(user);
-      navigate("/home", {
-        state: { user },
-      });
+      navigate("/home");
     } catch (error) {
       if (error.response) {
         setSignupError(error.response.data.message || "Sign in failed");
@@ -159,15 +157,22 @@ function SignInModal() {
   };
 
   const handleGoogleAuth = () => {
-    // Initiate the real Google OAuth flow
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`; // Change this to your actual endpoint
+    setLoading(true);
+    setHide(true);
+    setTimeout(() => {
+      window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+    }, 100);
   };
 
   const isFormValid =
     formData.username && formData.password && formData.username.length <= 100;
 
+  if (loading) {
+    return <LoadingModal Open={loading} Message="Loading..." />;
+  }
+
   return (
-    <StyledDialog open aria-hidden={hide}>
+    <StyledDialog open={!hide} onClose={handleClose}>
       <Header>
         <IconButton onClick={handleClose} sx={{ color: "#fff", padding: "0" }}>
           <CloseIcon />
@@ -233,7 +238,6 @@ function SignInModal() {
           Next
         </NextButton>
       </StyledDialogActions>
-      <LoadingModal Open={loading} Message="Entering..." />
     </StyledDialog>
   );
 }

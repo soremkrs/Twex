@@ -41,9 +41,9 @@ function SearchFeed({ onBackToHome, passHomeUsername, currentUserId }) {
   // Debounced search function
   const debouncedSearch = debounce(async (query) => {
     if (!query.trim()) return setUsers([]);
+    setLoading(true);
 
     try {
-      setLoading(true);
       const res = await axiosInstance.get(`/search/users`, {
         params: { q: query },
       });

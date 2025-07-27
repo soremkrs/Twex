@@ -80,6 +80,7 @@ function EditPostModal() {
   const [loading, setLoading] = useState(false);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
   const emojiPickerOpen = Boolean(emojiAnchorEl);
+   const [hide, setHide] = useState(false);
 
   const { id } = useParams(); // this is the post ID
   const [post, setPost] = useState(null);
@@ -103,14 +104,14 @@ function EditPostModal() {
     fetchPost();
   }, [id]);
 
-  if (!user || loading) {
-    return <LoadingModal Open={true} Message="Loading..." />;
-  }
-
   const handleFileChange = (e) => {
     if (e.target.files[0]) {
       setImage(e.target.files[0]);
     }
+  };
+
+  const handleClose = () => {
+    navigate(-1);
   };
 
   const handlePost = async () => {
@@ -134,8 +135,8 @@ function EditPostModal() {
           "Content-Type": "multipart/form-data",
         },
       });
-      navigate(-1);
-
+      setHide(true);
+      handleClose();
       // Delay then refresh parent page
       setTimeout(() => {
         navigate(0); // Refresh current page
@@ -148,15 +149,23 @@ function EditPostModal() {
     }
   };
 
+  if (!user) {
+    return <LoadingModal Open={true} Message="Loading..." />;
+  }
+
+   if (loading) {
+    return <LoadingModal Open={true} Message="Editing post..." />;
+  }
+
   return (
-    <StyledDialog open onClose={() => navigate(-1)}>
+    <StyledDialog open={!hide} onClose={handleClose}>
       <Box
         display="flex"
         alignItems="center"
         justifyContent="space-between"
         px={1}
       >
-        <IconButton onClick={() => navigate(-1)} sx={{ color: "#fff" }}>
+        <IconButton onClick={handleClose} sx={{ color: "#fff" }}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -292,7 +301,6 @@ function EditPostModal() {
           </Menu>
         </Box>
       </StyledDialogContent>
-      <LoadingModal Open={loading} Message="Posting..." />
     </StyledDialog>
   );
 }

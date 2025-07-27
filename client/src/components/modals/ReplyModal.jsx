@@ -80,6 +80,9 @@ function ReplyModal() {
   const [loading, setLoading] = useState(false);
   const [emojiAnchorEl, setEmojiAnchorEl] = useState(null);
   const emojiPickerOpen = Boolean(emojiAnchorEl);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [hide, setHide] = useState(false);
+  const [replyError, setReplyError] = useState("");
 
   const { id } = useParams(); // this is the post ID
   const [post, setPost] = useState(null);
@@ -100,9 +103,19 @@ function ReplyModal() {
     fetchPost();
   }, [id]);
 
-  if (!user || loading) {
-    return <LoadingModal Open={true} Message="Loading..." />;
-  }
+  useEffect(() => {
+    if (image && typeof image !== "string") {
+      const objectUrl = URL.createObjectURL(image);
+      setPreviewUrl(objectUrl);
+
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+        setPreviewUrl(null);
+      };
+    } else {
+      setPreviewUrl(null);
+    }
+  }, [image]);
 
   const handleFileChange = (e) => {
     if (e.target.files[0]) {
@@ -110,7 +123,12 @@ function ReplyModal() {
     }
   };
 
+  const handleClose = () => {
+    navigate(-1);
+  };
+
   const handlePost = async () => {
+    setReplyError("");
     if (!content.trim()) return;
 
     setLoading(true);
@@ -128,30 +146,37 @@ function ReplyModal() {
           "Content-Type": "multipart/form-data",
         },
       });
-
-      navigate(-1); // Close modal first
-
+      setHide(true);
+      handleClose(); // Close modal first
       // Delay then refresh parent page
       setTimeout(() => {
         navigate(0); // Refresh current page
       }, 50);
     } catch (err) {
-      alert("Failed to post reply");
+      setReplyError("Failed to post reply");
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
+  if (!user) {
+    return <LoadingModal Open={true} Message="Loading..." />;
+  }
+
+  if (loading) {
+    return <LoadingModal Open={true} Message="Replying..." />;
+  }
+
   return (
-    <StyledDialog open onClose={() => navigate(-1)}>
+    <StyledDialog open={!hide} onClose={handleClose}>
       <Box
         display="flex"
         alignItems="center"
         justifyContent="space-between"
         px={1}
       >
-        <IconButton onClick={() => navigate(-1)} sx={{ color: "#fff" }}>
+        <IconButton onClick={handleClose} sx={{ color: "#fff" }}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -183,7 +208,7 @@ function ReplyModal() {
               onChange={(e) => setContent(e.target.value)}
             />
 
-            {image && (
+            {image && previewUrl && (
               <Box
                 mt={1}
                 position="relative"
@@ -191,11 +216,7 @@ function ReplyModal() {
                 overflow="hidden"
               >
                 <img
-                  src={
-                    typeof image === "string"
-                      ? image
-                      : URL.createObjectURL(image)
-                  }
+                  src={previewUrl}
                   alt="preview"
                   style={{
                     width: "100%",
@@ -298,7 +319,7 @@ function ReplyModal() {
             </IconButton>
           </Box>
           <PostButton onClick={handlePost} disabled={!content.trim()}>
-            Post
+            Reply
           </PostButton>
           <Menu
             anchorEl={emojiAnchorEl}
@@ -331,7 +352,14 @@ function ReplyModal() {
           </Menu>
         </Box>
       </StyledDialogContent>
-      <LoadingModal Open={loading} Message="Posting..." />
+      {replyError && (
+        <Typography
+          variant="subtitle1"
+          sx={{ color: "red", textAlign: "center", mt: 1 }}
+        >
+          {replyError}
+        </Typography>
+      )}
     </StyledDialog>
   );
 }

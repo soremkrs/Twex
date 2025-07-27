@@ -37,7 +37,7 @@ export default function configurePassport(passport) {
       {
         clientID: process.env.GOOGLE_CLIENT_ID, // Google OAuth client ID
         clientSecret: process.env.GOOGLE_CLIENT_SECRET, // Google OAuth client secret
-        callbackURL: "http://localhost:3000/api/auth/google/twex", // OAuth callback URL
+        callbackURL: process.env.GOOGLE_CALLBACK_URL, // OAuth callback URL
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
