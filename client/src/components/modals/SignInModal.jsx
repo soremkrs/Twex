@@ -160,7 +160,7 @@ function SignInModal() {
 
   const handleGoogleAuth = () => {
     // Initiate the real Google OAuth flow
-    window.location.href = "http://localhost:3000/api/auth/google"; // Change this to your actual endpoint
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`; // Change this to your actual endpoint
   };
 
   const isFormValid =

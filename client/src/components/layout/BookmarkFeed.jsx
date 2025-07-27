@@ -164,7 +164,7 @@ function BookmarkFeed({
       ))}
 
       {hasMore && !loading && <Box ref={lastPostRef} sx={{ height: 1 }} />}
-      {loading && <LoadingModal />}
+      {loading && <LoadingModal Open={loading} Message={"Loading..."}/>}
 
       {!hasMore && !loading && (
         <Typography align="center" color="gray" py={2}>

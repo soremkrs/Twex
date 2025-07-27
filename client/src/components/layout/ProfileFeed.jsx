@@ -297,7 +297,7 @@ function ProfileFeed({
   return (
     <ProfileContainer>
       {!currentUserId || (loading && page === 1) ? (
-        <LoadingModal />
+        <LoadingModal Open={loading} Message={"Loading..."}/>
       ) : !profileUser ? (
         <Typography color="gray">User not found</Typography>
       ) : (
@@ -506,7 +506,7 @@ function ProfileFeed({
               <Box ref={lastItemRef} sx={{ height: 1 }} />
             )}
             {initialLoading && page === 1 ? (
-              <LoadingModal />
+              <LoadingModal Open={loading} Message={"Loading..."}/>
             ) : loading ? (
               <Box display="flex" justifyContent="center" py={3}>
                 <CircularProgress size={28} sx={{ color: "#1d9bf0" }} />

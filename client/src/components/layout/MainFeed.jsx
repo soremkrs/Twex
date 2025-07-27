@@ -197,7 +197,7 @@ function MainFeed({
 
       {hasMore && !loading && <Box ref={lastPostRef} sx={{ height: 1 }} />}
       {initialLoading && page === 1 ? (
-        <LoadingModal />
+        <LoadingModal Open={loading} Message={"Loading..."}/>
       ) : loading ? (
         <Box display="flex" justifyContent="center" py={3}>
           <CircularProgress size={28} sx={{ color: "#1d9bf0" }} />

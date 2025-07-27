@@ -28,16 +28,16 @@ const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
   flex: 1,
 }));
 
-function LoadingModal(props) {
+function LoadingModal({ Open, Message }) {
   return (
-    <StyledDialog open={props.Open}>
+    <StyledDialog open={Open}>
       <StyledDialogContent>
         <CircularProgress size={40} color="primary" />
         <Typography
           variant="subtitle1"
           sx={{ marginTop: 3, color: "#ccc", textAlign: "center" }}
         >
-          {props.Message}
+          {Message}
         </Typography>
       </StyledDialogContent>
     </StyledDialog>

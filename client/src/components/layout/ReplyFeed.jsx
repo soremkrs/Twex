@@ -123,7 +123,7 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passH
         />
       ))}
 
-      {loading && <LoadingModal />}
+      {loading && <LoadingModal Open={loading} Message={"Loading..."}/>}
 
       {!loading && replies.length === 0 && (
         <Typography align="center" color="gray" py={2}>

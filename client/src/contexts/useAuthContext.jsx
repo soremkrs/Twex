@@ -22,7 +22,10 @@ function AuthProvider({ children }) {
     axiosInstance
       .get("/auth/check")
       .then((res) => setUser(res.data.user))
-      .catch(() => setUser(null))
+      .catch((err) => {
+        console.error("Auth check failed:", err);
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
