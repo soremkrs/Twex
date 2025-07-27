@@ -2,7 +2,6 @@ import React from "react";
 import { BrowserRouter } from "react-router-dom";
 import PagesRoutes from "./components/PagesRoutes";
 import { AuthProvider } from "./contexts/useAuthContext";
-import "./styles/App.css";
 
 function App() {
   return (

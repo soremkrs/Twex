@@ -13,7 +13,7 @@ CREATE TABLE tweets (
   id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
-  date DATE NOT NULL,
+  date TIMESTAMP NOT NULL DEFAULT NOW(),
   image_url TEXT
 );
 
@@ -37,7 +37,7 @@ CREATE TABLE replies (
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,   
   content TEXT NOT NULL,
   image_url TEXT,                                                    
-  date DATE NOT NULL
+  date TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE bookmarks (
@@ -45,4 +45,11 @@ CREATE TABLE bookmarks (
   tweet_id INTEGER NOT NULL REFERENCES tweets(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT NOW(),
   PRIMARY KEY (user_id, tweet_id)
+);
+
+CREATE TABLE notification_checks (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  last_checked TIMESTAMP NOT NULL DEFAULT NOW(),
+  UNIQUE(user_id)
 );

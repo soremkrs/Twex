@@ -22,19 +22,16 @@ function Home() {
   const path = location.pathname;
 
   useEffect(() => {
-    const lastSeen =
-      localStorage.getItem("lastNotificationCheck") ||
-      new Date(0).toISOString();
+    if (!user) return;
 
+    // Check if user has new notifications
     axiosInstance
-      .get("/notifications/check", {
-        params: { lastSeen },
-      })
+      .get("/notifications/check")
       .then((res) => {
         setHasNewNotification(res.data.hasNew);
       })
-      .catch((err) => console.error(err));
-  }, []);
+      .catch(console.error);
+  }, [user]);
 
   const openHomePage = () => {
     navigate("/home");
@@ -51,9 +48,13 @@ function Home() {
   };
 
   const openNotificationPage = () => {
-    localStorage.setItem("lastNotificationCheck", new Date().toISOString());
-    setHasNewNotification(false);
-    navigate("/notifications");
+    axiosInstance
+      .post("/notifications/mark-seen")
+      .then(() => {
+        setHasNewNotification(false);
+        navigate("/notifications");
+      })
+      .catch(console.error);
   };
 
   const openBookmarksPage = () => {

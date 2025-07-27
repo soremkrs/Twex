@@ -134,12 +134,11 @@ router.get("/post/:id", ensureAuthenticated, async (req, res) => {
 router.post("/create/post", ensureAuthenticated, upload.single("image"), async (req, res) => {
   const { content } = req.body;
   const imageUrl = req.file?.path || null;
-  const date = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
 
   try {
     await db.query(
-      `INSERT INTO tweets (user_id, content, date, image_url) VALUES ($1, $2, $3, $4)`,
-      [req.user.id, content, date, imageUrl]
+      `INSERT INTO tweets (user_id, content, image_url) VALUES ($1, $2, $3)`,
+      [req.user.id, content, imageUrl]
     );
 
     res.status(201).json({ message: "Post created", imageUrl });
@@ -257,12 +256,11 @@ router.get("/posts/:id/replies", ensureAuthenticated, async (req, res) => {
 router.post("/replies", ensureAuthenticated, upload.single("image"), async (req, res) => {
   const { content, replyTo } = req.body;
   const imageUrl = req.file?.path || null;
-  const date = new Date().toISOString().split("T")[0];
 
   try {
     await db.query(
-      `INSERT INTO replies (tweet_id, user_id, content, date, image_url) VALUES ($1, $2, $3, $4, $5)`,
-      [replyTo, req.user.id, content, date, imageUrl]
+      `INSERT INTO replies (tweet_id, user_id, content, image_url) VALUES ($1, $2, $3, $4)`,
+      [replyTo, req.user.id, content, imageUrl]
     );
     res.status(201).json({ message: "Post created", imageUrl });
   } catch (err) {

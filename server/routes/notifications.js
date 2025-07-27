@@ -1,43 +1,73 @@
 import express from "express";
-import { db } from "../config/db.js";
-import { ensureAuthenticated } from "../middlewares/auth.js";
+import { db } from "../config/db.js";              // Import database connection pool
+import { ensureAuthenticated } from "../middlewares/auth.js"; // Middleware to check if user is logged in
 
 const router = express.Router();
 
 // GET /notifications/check
-// Checks if there are new posts by users the current user follows since their last check
+// Checks if the current user has new tweets/posts from the users they follow since their last notification check
 router.get("/notifications/check", ensureAuthenticated, async (req, res) => {
-  const currentUserId = req.user.id;          // ID of the logged-in user
-  const lastSeen = req.query.lastSeen;        // Timestamp of the last notification check (expected as a query param)
-
-  // Validate that lastSeen parameter is provided
-  if (!lastSeen) {
-    return res.status(400).json({ message: "Missing lastSeen parameter" });
-  }
+  const userId = req.user.id;  // Get current logged-in user ID from request (set by auth middleware)
 
   try {
-    // Query to count tweets posted after 'lastSeen' by users the current user follows
-    const query = `
-      SELECT COUNT(*) AS new_post_count
-      FROM tweets
-      WHERE user_id IN (
-        SELECT following_id FROM follows WHERE follower_id = $1
-      )
-      AND date > $2
-    `;
+    // Fetch the timestamp of the last time this user checked notifications
+    const { rows } = await db.query(
+      "SELECT last_checked FROM notification_checks WHERE user_id = $1",
+      [userId]
+    );
 
-    // Execute the query with current user ID and lastSeen timestamp
-    const result = await db.query(query, [currentUserId, lastSeen]);
+    // If no previous record, set lastChecked to epoch start (means never checked)
+    const lastChecked = rows.length > 0 ? rows[0].last_checked : new Date(0);
 
-    // Parse the count of new posts
-    const newPostCount = parseInt(result.rows[0].new_post_count, 10);
+    // Count how many new tweets have been made by users the current user follows, after lastChecked time
+    const { rows: newPosts } = await db.query(
+      `SELECT COUNT(*) AS new_post_count
+       FROM tweets
+       WHERE user_id IN (
+         SELECT following_id FROM follows WHERE follower_id = $1
+       )
+       AND date > $2`,
+      [userId, lastChecked]
+    );
 
-    // Return true if there are new posts, false otherwise
-    res.json({ hasNew: newPostCount > 0 });
+    // If count > 0, user has new notifications
+    const hasNew = parseInt(newPosts[0].new_post_count, 10) > 0;
+
+    // Return JSON with boolean flag indicating presence of new notifications
+    res.json({ hasNew });
   } catch (err) {
-    console.error("Notification check error:", err);
+    // Log error and send 500 response on failure
+    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// POST /notifications/mark-seen
+// Marks the notifications as seen by updating the last_checked timestamp to current time
+router.post(
+  "/notifications/mark-seen",
+  ensureAuthenticated,
+  async (req, res) => {
+    const userId = req.user.id; // Get logged-in user ID
+
+    try {
+      // Insert or update the last_checked timestamp for this user to NOW()
+      // If user already has a row in notification_checks, update last_checked to current time
+      await db.query(
+        `INSERT INTO notification_checks (user_id, last_checked)
+         VALUES ($1, NOW())
+         ON CONFLICT (user_id) DO UPDATE SET last_checked = NOW()`,
+        [userId]
+      );
+
+      // Respond with success flag
+      res.json({ success: true });
+    } catch (err) {
+      // Handle errors by logging and sending 500 status
+      console.error(err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
 
 export default router;

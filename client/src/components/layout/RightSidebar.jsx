@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, TextField, Typography, Divider } from "@mui/material";
+import { Box, TextField, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import axiosInstance from "../../utils/axiosConfig";
 import SecondUserCard from "../cards/SecondUserCard";

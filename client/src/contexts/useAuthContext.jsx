@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 // Always define the context first
 const AuthContext = createContext(undefined);
 
-// Custom hook MUST be declared *outside* the component
 function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

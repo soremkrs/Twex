@@ -11,7 +11,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import SecondUserCard from "../cards/SecondUserCard";
 import axiosInstance from "../../utils/axiosConfig";
 import { debounce } from "lodash";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 // Styled container like NotificationFeed
 const FeedContainer = styled(Box)(({ theme }) => ({
