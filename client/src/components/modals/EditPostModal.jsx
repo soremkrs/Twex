@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ImageIcon from "@mui/icons-material/Image";
 import { useAuth } from "../../contexts/useAuthContext";
@@ -74,6 +74,8 @@ const PostButton = styled(Button)(({ theme }) => ({
 
 function EditPostModal() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const backgroundLocation = location.state?.backgroundLocation;
   const { user } = useAuth();
   const [content, setContent] = useState("");
   const [image, setImage] = useState(null);
@@ -137,10 +139,18 @@ function EditPostModal() {
       });
       setHide(true);
       handleClose();
-      // Delay then refresh parent page
-      setTimeout(() => {
-        navigate(0); // Refresh current page
-      }, 50);
+      // Navigate back to the previous page (not -1)
+      if (backgroundLocation) {
+        navigate(backgroundLocation.pathname, {
+          state: { editPostId: id },
+          replace: true,
+        });
+      } else {
+        // fallback if backgroundLocation is missing
+        navigate("/home", {
+          state: { editPostId: id },
+        });
+      }
     } catch (err) {
       alert("Failed to post");
       console.error(err);

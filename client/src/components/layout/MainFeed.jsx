@@ -11,7 +11,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import PostCard from "../cards/PostCard";
 import axiosInstance from "../../utils/axiosConfig";
 import LoadingModal from "../modals/LoadingModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
 
 // Styled Components
@@ -78,6 +78,7 @@ function MainFeed({
   const [loading, setLoading] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const [initialLoading, setInitialLoading] = useState(true);
 
   const observer = useRef();
@@ -131,13 +132,38 @@ function MainFeed({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const handleDelete = async (id) => {
-    try {
-      await axiosInstance.delete(`/delete/post/${id}`);
-      setPosts((prev) => prev.filter((p) => p.id !== id));
-    } catch (err) {
-      console.error("Delete error:", err);
+  useEffect(() => {
+    if (location.state?.refresh) {
+      // Reset post feed to page 1 and refresh
+      setPage(1);
+      setPosts([]);
+      setHasMore(true);
+      setFeedType("all"); // optional: force back to All feed
+      // Clear the refresh state to avoid repeated fetches
+      navigate(location.pathname, { replace: true, state: null });
     }
+  }, [location]);
+
+  useEffect(() => {
+    const postId = location.state?.editPostId;
+    if (postId) {
+      refreshSinglePostById(postId);
+      // Clear it so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const postId = location.state?.repliedToPostId;
+    if (postId) {
+      refreshSinglePostById(postId);
+      // Clear it so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location]);
+
+  const handleDelete = (id) => {
+    setPosts((prev) => prev.filter((p) => p.id !== id));
   };
 
   const handleViewReplies = (postId) => {
@@ -148,24 +174,15 @@ function MainFeed({
     passHomeUsername(username);
   };
 
-  const refreshAllMainFeed = async () => {
-    setLoading(true);
+  const refreshSinglePostById = async (postId) => {
     try {
-      // Reset to page 1
-      setPage(1);
-
-      // Fetch posts page 1 from your backend
-      const res = await axiosInstance.get(`/posts?page=1&feedType=${feedType}`);
-
-      // Replace the current posts with the new ones
-      setPosts(res.data.posts || []);
-
-      // Reset hasMore according to backend response (true if more pages available)
-      setHasMore(res.data.hasMore ?? true);
+      const res = await axiosInstance.get(`/post/${postId}`);
+      const updatedPost = res.data.post;
+      setPosts((prevPosts) =>
+        prevPosts.map((p) => (p.id === Number(postId) ? { ...updatedPost } : p))
+      );
     } catch (err) {
-      console.error("Error refreshing main feed:", err);
-    } finally {
-      setLoading(false);
+      console.error("Error refreshing single post:", err);
     }
   };
 
@@ -186,9 +203,9 @@ function MainFeed({
           key={post.id}
           post={post}
           currentUserId={currentUserId}
-          onDelete={handleDelete}
           onEdit={onEditPost}
-          refreshPosts={refreshAllMainFeed}
+          onDelete={handleDelete}
+          refreshPosts={refreshSinglePostById}
           onReply={onReplyPost}
           viewReply={handleViewReplies}
           passUsername={passUsername}
@@ -197,7 +214,7 @@ function MainFeed({
 
       {hasMore && !loading && <Box ref={lastPostRef} sx={{ height: 1 }} />}
       {initialLoading && page === 1 ? (
-        <LoadingModal Open={loading} Message={"Loading..."}/>
+        <LoadingModal Open={loading} Message={"Loading..."} />
       ) : loading ? (
         <Box display="flex" justifyContent="center" py={3}>
           <CircularProgress size={28} sx={{ color: "#1d9bf0" }} />

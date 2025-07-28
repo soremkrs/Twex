@@ -5,7 +5,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import PostCard from "../cards/PostCard";
 import axiosInstance from "../../utils/axiosConfig";
 import LoadingModal from "../modals/LoadingModal";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 // Styled Components
 const FeedContainer = styled(Box)(({ theme }) => ({
@@ -39,6 +39,7 @@ function BookmarkFeed({
   passHomeUsername,
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [bookmarks, setBookmarks] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -93,13 +94,26 @@ function BookmarkFeed({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const handleDelete = async (id) => {
-    try {
-      await axiosInstance.delete(`/delete/post/${id}`);
-      setBookmarks((prev) => prev.filter((p) => p.id !== id));
-    } catch (err) {
-      console.error("Delete error:", err);
+  useEffect(() => {
+    const postId = location.state?.editPostId;
+    if (postId) {
+      refreshSingleBookmarkById(postId);
+      // Clear it so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: null });
     }
+  }, [location]);
+
+  useEffect(() => {
+    const postId = location.state?.repliedToPostId;
+    if (postId) {
+      refreshSingleBookmarkById(postId);
+      // Clear it so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location]);
+
+  const handleDelete = async (id) => {
+    setBookmarks((prev) => prev.filter((p) => p.id !== id));
   };
 
   const handleUnbookmark = (postId) => {
@@ -110,17 +124,16 @@ function BookmarkFeed({
     navigate(`/posts/${postId}/replies`);
   };
 
-  const refreshAllBookmarks = async () => {
+  const refreshSingleBookmarkById = async (postId) => {
     try {
-      setLoading(true);
-      const res = await axiosInstance.get(`/bookmarks?page=1`);
-      setBookmarks(res.data.bookmarks || []);
-      setPage(1);
-      setHasMore(true);
+      const res = await axiosInstance.get(`/post/${postId}`);
+      const updatedPost = res.data.post;
+
+      setBookmarks((prev) =>
+        prev.map((p) => (p.id === Number(postId) ? updatedPost : p))
+      );
     } catch (err) {
-      console.error("Error refreshing bookmarks:", err);
-    } finally {
-      setLoading(false);
+      console.error("Error refreshing single bookmark:", err);
     }
   };
 
@@ -154,7 +167,7 @@ function BookmarkFeed({
           currentUserId={currentUserId}
           onDelete={handleDelete}
           onEdit={onEditPost}
-          refreshPosts={refreshAllBookmarks}
+          refreshPosts={refreshSingleBookmarkById}
           onReply={onReplyPost}
           variant="default"
           onUnbookmark={handleUnbookmark}
@@ -164,7 +177,7 @@ function BookmarkFeed({
       ))}
 
       {hasMore && !loading && <Box ref={lastPostRef} sx={{ height: 1 }} />}
-      {loading && <LoadingModal Open={loading} Message={"Loading..."}/>}
+      {loading && <LoadingModal Open={loading} Message={"Loading..."} />}
 
       {!hasMore && !loading && (
         <Typography align="center" color="gray" py={2}>

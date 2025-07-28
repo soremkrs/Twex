@@ -14,7 +14,7 @@ import axiosInstance from "../../utils/axiosConfig";
 import LoadingModal from "../modals/LoadingModal";
 import PostCard from "../cards/PostCard";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import SecondUserCard from "../cards/SecondUserCard";
 import CircularProgress from "@mui/material/CircularProgress";
 
@@ -77,7 +77,7 @@ function ProfileFeed({
 }) {
   const { username } = useParams();
   const navigate = useNavigate();
-
+  const location = useLocation();
   const [profileUser, setProfileUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState("posts");
@@ -124,7 +124,6 @@ function ProfileFeed({
     setLoading(true);
 
     try {
-      
       const res = await axiosInstance.get(`/${username}/profile`);
       setProfileUser(res.data);
     } catch (err) {
@@ -197,6 +196,35 @@ function ProfileFeed({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (location.state?.refresh) {
+      // Reset post feed to page 1 and refresh
+      setPage(1);
+      setItems([]);
+      setHasMore(true);
+      // Clear the refresh state to avoid repeated fetches
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const postId = location.state?.editPostId;
+    if (postId) {
+      refreshSinglePostById(postId);
+      // Clear it so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const postId = location.state?.repliedToPostId;
+    if (postId) {
+      refreshSinglePostById(postId);
+      // Clear it so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location]);
+
   const handleEditProfile = () => {
     navigate("/edit-profile", {
       state: {
@@ -211,12 +239,8 @@ function ProfileFeed({
   };
 
   const handleDelete = async (id) => {
-    try {
-      await axiosInstance.delete(`/delete/post/${id}`);
-      setItems((prev) => prev.filter((p) => p.id !== id));
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
+    setItems((prev) => prev.filter((p) => p.id !== id));
+    fetchProfileUser();
   };
 
   const handleViewReplies = (postId) => {
@@ -227,7 +251,6 @@ function ProfileFeed({
     setLoading(true);
 
     try {
-      
       const res = await axiosInstance.get(
         `/users/${profileUser.id}/replies?page=1`
       );
@@ -253,56 +276,29 @@ function ProfileFeed({
         await axiosInstance.post(`/follow/${profileUser.id}`);
       }
       setIsFollowing((prev) => !prev);
-
-      // Refresh tab content by resetting state (like in useEffect)
-      setItems([]);
-      setPage(1);
-      setHasMore(true);
-      fetchTabItems();
       fetchProfileUser();
     } catch (err) {
       console.error("Follow/unfollow error:", err);
     }
   };
 
-  const refreshProfileFeed = async (currentFeedType = selectedTab) => {
-    setLoading(true);
-
+  const refreshSinglePostById = async (postId) => {
     try {
-      
-      const res = await axiosInstance.get(
-        `/users/${profileUser.id}/${currentFeedType}?page=1`
-      );
-      setItems(res.data.posts || []);
-      setHasMore(res.data.hasMore ?? true);
-    } catch (err) {
-      console.error("Error refreshing profile feed:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      const res = await axiosInstance.get(`/post/${postId}`);
+      const updatedPost = res.data.post;
 
-  const refreshLikedPosts = async () => {
-    setLoading(true);
-
-    try {
-      
-      const res = await axiosInstance.get(
-        `/users/${profileUser.id}/likes?page=1`
+      setItems((prevPosts) =>
+        prevPosts.map((p) => (p.id === Number(postId) ? updatedPost : p))
       );
-      setItems(res.data.likes || []);
-      setHasMore(res.data.hasMore ?? true);
     } catch (err) {
-      console.error("Error refreshing liked posts:", err);
-    } finally {
-      setLoading(false);
+      console.error("Error refreshing single post:", err);
     }
   };
 
   return (
     <ProfileContainer>
       {!currentUserId || (loading && page === 1) ? (
-        <LoadingModal Open={loading} Message={"Loading..."}/>
+        <LoadingModal Open={loading} Message={"Loading..."} />
       ) : !profileUser ? (
         <Typography color="gray">User not found</Typography>
       ) : (
@@ -415,7 +411,7 @@ function ProfileFeed({
                   currentUserId={currentUserId}
                   onDelete={handleDelete}
                   onEdit={onEditPost}
-                  refreshPosts={refreshProfileFeed}
+                  refreshPosts={refreshSinglePostById}
                   onReply={onReplyPost}
                   viewReply={handleViewReplies}
                   passUsername={passUsername}
@@ -477,7 +473,7 @@ function ProfileFeed({
                   currentUserId={currentUserId}
                   onDelete={handleDelete}
                   onEdit={onEditPost}
-                  refreshPosts={refreshLikedPosts}
+                  refreshPosts={refreshSinglePostById}
                   onReply={onReplyPost}
                   viewReply={handleViewReplies}
                   passUsername={passUsername}
@@ -492,7 +488,7 @@ function ProfileFeed({
                   user={user}
                   currentUserId={currentUserId}
                   passUsername={passUsername}
-                  refreshPosts={{fetchTabItems, fetchProfileUser}}
+                  refreshPosts={{ fetchTabItems, fetchProfileUser }}
                 />
               ))}
 
@@ -503,7 +499,7 @@ function ProfileFeed({
                   user={user}
                   currentUserId={currentUserId}
                   passUsername={passUsername}
-                  refreshPosts={{fetchTabItems, fetchProfileUser}}
+                  refreshPosts={{ fetchTabItems, fetchProfileUser }}
                 />
               ))}
 
@@ -511,7 +507,7 @@ function ProfileFeed({
               <Box ref={lastItemRef} sx={{ height: 1 }} />
             )}
             {initialLoading && page === 1 ? (
-              <LoadingModal Open={loading} Message={"Loading..."}/>
+              <LoadingModal Open={loading} Message={"Loading..."} />
             ) : loading ? (
               <Box display="flex" justifyContent="center" py={3}>
                 <CircularProgress size={28} sx={{ color: "#1d9bf0" }} />

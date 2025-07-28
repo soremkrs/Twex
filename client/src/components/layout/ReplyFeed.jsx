@@ -31,7 +31,13 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
   },
 }));
 
-function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passHomeUsername }) {
+function ReplyFeed({
+  currentUserId,
+  onEditPost,
+  onReplyPost,
+  onBackToHome,
+  passHomeUsername,
+}) {
   const navigate = useNavigate();
   const { id: postId } = useParams();
 
@@ -69,13 +75,8 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passH
     passHomeUsername(username);
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await axiosInstance.delete(`/delete/post/${id}`);
-      navigate(-1);
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
+  const handleDelete = async () => {
+    navigate(-1);
   };
 
   return (
@@ -107,6 +108,7 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passH
           onDelete={handleDelete}
           passUsername={passUsername}
           variant="default"
+          hideViewRepliesButton={true}
           hideActions
         />
       )}
@@ -124,7 +126,7 @@ function ReplyFeed({ currentUserId, onEditPost, onReplyPost, onBackToHome, passH
         />
       ))}
 
-      {loading && <LoadingModal Open={loading} Message={"Loading..."}/>}
+      {loading && <LoadingModal Open={loading} Message={"Loading..."} />}
 
       {!loading && replies.length === 0 && (
         <Typography align="center" color="gray" py={2}>

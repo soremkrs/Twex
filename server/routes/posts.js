@@ -97,35 +97,50 @@ router.get("/posts", ensureAuthenticated, async (req, res) => {
  * Fetch a single post by id
  */
 router.get("/post/:id", ensureAuthenticated, async (req, res) => {
+  const currentUserId = req.user?.id;
   const postId = req.params.id;
+
   try {
     const result = await db.query(
       `
       SELECT
         tweets.id,
         tweets.content,
+        TO_CHAR(tweets.date, 'DD-MM-YYYY') AS date,
         tweets.image_url,
         tweets.user_id,
         users.username,
         users.real_name,
-        users.avatar_url
+        users.avatar_url,
+        COUNT(DISTINCT likes.user_id) AS total_likes,
+        COUNT(DISTINCT replies.id) AS total_replies,
+        EXISTS (
+          SELECT 1 FROM likes WHERE likes.user_id = $1 AND likes.tweet_id = tweets.id
+        ) AS liked_by_current_user,
+        EXISTS (
+          SELECT 1 FROM bookmarks WHERE bookmarks.user_id = $1 AND bookmarks.tweet_id = tweets.id
+        ) AS bookmarked_by_current_user
       FROM tweets
       JOIN users ON tweets.user_id = users.id
-      WHERE tweets.id = $1
+      LEFT JOIN likes ON likes.tweet_id = tweets.id
+      LEFT JOIN replies ON replies.tweet_id = tweets.id
+      WHERE tweets.id = $2
+      GROUP BY tweets.id, users.id
       `,
-      [postId]
+      [currentUserId, postId]
     );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: "Post not found" });
-    } else {
-      res.status(200).json({ post: result.rows[0] });
     }
+
+    res.status(200).json({ post: result.rows[0] });
   } catch (err) {
     console.error("Fetch single post error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
 
 /**
  * POST /create/post

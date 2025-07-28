@@ -39,6 +39,7 @@ function PostCard({
   hideActions = false,
   onUnbookmark,
   passUsername,
+  hideViewRepliesButton = false,
 }) {
   const {
     id,
@@ -90,9 +91,14 @@ function PostCard({
     handleMenuClose();
     onEdit(id);
   };
-  const handleDelete = () => {
+  const handleDeletePost = async () => {
     handleMenuClose();
-    onDelete(id);
+    try {
+      await axiosInstance.delete(`/delete/post/${id}`);
+      onDelete?.(id);
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
   };
 
   const handleFollowToggle = () => {
@@ -109,12 +115,12 @@ function PostCard({
 
   const handleLikeToggle = () => {
     const method = liked ? "delete" : "post";
-    const url = liked ? `/unlike/${post.id}` : `/like/${post.id}`;
+    const url = liked ? `/unlike/${id}` : `/like/${id}`;
 
     axiosInstance[method](url)
       .then(() => {
         setLiked(!liked);
-        refreshPosts?.();
+        refreshPosts?.(id);
       })
       .catch((err) => {
         console.error("Error toggling like", err);
@@ -127,7 +133,7 @@ function PostCard({
     axiosInstance
       .delete(`/reply/${id}`) // id is the reply's ID
       .then(() => {
-        refreshPosts?.(); // Re-fetch the parent post and its replies
+        refreshPosts?.(id); // Re-fetch the parent post and its replies
       })
       .catch((err) => {
         console.error("Error deleting reply", err);
@@ -137,12 +143,14 @@ function PostCard({
   const handleBookmarkToggle = async () => {
     try {
       if (bookmarked) {
-        await axiosInstance.delete(`/unbookmark/${post.id}`);
+        await axiosInstance.delete(`/unbookmark/${id}`);
         setBookmarked(false);
-        if (onUnbookmark) onUnbookmark(post.id);
+        if (onUnbookmark) onUnbookmark(id);
+        refreshPosts?.(id);
       } else {
-        await axiosInstance.post(`/bookmark/${post.id}`); // <-- URL param, no body
+        await axiosInstance.post(`/bookmark/${id}`); // <-- URL param, no body
         setBookmarked(true);
+        refreshPosts?.(id);
       }
     } catch (err) {
       console.error("Bookmark toggle error:", err);
@@ -151,7 +159,7 @@ function PostCard({
 
   const goToProfile = ({ clickedUser, parentUser }) => {
     passUsername({ clickedUser, parentUser });
-    refreshPosts?.();
+    refreshPosts?.(id);
   };
 
   return (
@@ -217,7 +225,7 @@ function PostCard({
                       </MenuItem>,
                       <MenuItem
                         key="delete"
-                        onClick={handleDelete}
+                        onClick={handleDeletePost}
                         sx={{
                           "&:hover": {
                             backgroundColor: "#111",
@@ -246,7 +254,7 @@ function PostCard({
                     </MenuItem>
                   )}
 
-                  {variant !== "reply" && total_replies > 0 && (
+                  {variant !== "reply" && total_replies > 0 && !hideViewRepliesButton &&(
                     <MenuItem
                       key="viewReplies"
                       onClick={() => {
