@@ -110,7 +110,7 @@ function PostCard({
     axiosInstance[method](endpoint)
       .then(() => setIsFollowing(!isFollowing))
       .catch((err) => console.error("Follow toggle error", err));
-    refreshPosts?.();
+    refreshPosts?.(id);
   };
 
   const handleLikeToggle = () => {

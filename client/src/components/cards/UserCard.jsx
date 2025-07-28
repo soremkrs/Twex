@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { Box, Typography, Avatar, Menu, MenuItem } from "@mui/material";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { useAuth } from "../../contexts/useAuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import LoadingModal from "../modals/LoadingModal";
 import axiosInstance from "../../utils/axiosConfig";
 
 function UserCard() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const menuOpen = Boolean(anchorEl);
@@ -34,18 +35,14 @@ function UserCard() {
     navigate("/edit-profile", {
       state: {
         user,
-        backgroundLocation: { pathname: "/home" },
+        backgroundLocation: location,
         fromHome: true,
       },
     });
   };
 
   if (loading) {
-    return (
-      <div>
-        <LoadingModal />
-      </div>
-    );
+    return <LoadingModal Open={loading} Message="Editing profile..." />;
   } else if (!user) {
     return null;
   } else {

@@ -95,6 +95,17 @@ function BookmarkFeed({
   }, []);
 
   useEffect(() => {
+    if (location.state?.refresh) {
+      // Reset post feed to page 1 and refresh
+      setPage(1);
+      setBookmarks([]);
+      setHasMore(true);
+      // Clear the refresh state to avoid repeated fetches
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location]);
+
+  useEffect(() => {
     const postId = location.state?.editPostId;
     if (postId) {
       refreshSingleBookmarkById(postId);

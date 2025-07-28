@@ -202,6 +202,7 @@ function ProfileFeed({
       setPage(1);
       setItems([]);
       setHasMore(true);
+      fetchProfileUser();
       // Clear the refresh state to avoid repeated fetches
       navigate(location.pathname, { replace: true, state: null });
     }

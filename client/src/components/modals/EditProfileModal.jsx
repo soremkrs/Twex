@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { styled } from "@mui/material/styles";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axiosInstance from "../../utils/axiosConfig";
 import TXLogo from "../../assets/TXLogo.svg";
 import LoadingModal from "./LoadingModal";
@@ -124,7 +124,8 @@ const NextButton = styled(Button)(({ theme }) => ({
 function EditProfileModal() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
-
+  const location = useLocation();
+  const backgroundLocation = location.state?.backgroundLocation;
   const [formData, setFormData] = useState({
     realName: "",
     avatar: "/avatars/default_avatar.svg",
@@ -182,12 +183,18 @@ function EditProfileModal() {
       setUser(updatedUser);
 
       setHide(true);
-      navigate( -1);
-
-      // Delay then refresh parent page
-      setTimeout(() => {
-        navigate(0); // Refresh current page
-      }, 50);
+      // Navigate back to the previous page (not -1)
+      if (backgroundLocation) {
+        navigate(backgroundLocation.pathname, {
+          state: { refresh: true },
+          replace: true,
+        });
+      } else {
+        // fallback if backgroundLocation is missing
+        navigate("/home", {
+          state: { refresh: true },
+        });
+      }
     } catch (err) {
       alert("Failed to save profile");
       console.error(err);
@@ -209,10 +216,7 @@ function EditProfileModal() {
   return (
     <StyledDialog open={!hide} onClose={handleClose}>
       <Header>
-        <IconButton
-          onClick={handleClose}
-          sx={{ color: "#fff", padding: "0" }}
-        >
+        <IconButton onClick={handleClose} sx={{ color: "#fff", padding: "0" }}>
           <CloseIcon />
         </IconButton>
       </Header>
