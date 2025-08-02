@@ -5,7 +5,7 @@ import Button from "@mui/material/Button";
 const CustomButton = styled(Button)({
   fontSize: "1.2rem",
   fontWeight: "525",
-  width: "auto",
+  width: "100%",
   padding: "10px 0px",
   backgroundColor: "white",
   color: "black",

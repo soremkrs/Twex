@@ -97,7 +97,12 @@ function Home() {
   const isSearchView = path === "/explore";
 
   return (
-    <Box display="flex" justifyContent="center" maxWidth="auto" mx="auto">
+    <Box
+      display="flex"
+      justifyContent="center"
+      maxWidth="auto"
+      mx="auto"
+    >
       <LeftSidebar
         onClickHome={openHomePage}
         onClickExplore={openExplorePage}
@@ -108,50 +113,50 @@ function Home() {
         hasNewNotification={hasNewNotification}
       />
       {/* FEED AREA */}
-      {isSearchView ? (
-        <SearchFeed
-          currentUserId={user?.id}
-          onBackToHome={openHomePage}
-          passHomeUsername={handleOpenUserProfile}
-        />
-      ) : isBookmarkView ? (
-        <BookmarkFeed
-          currentUserId={user?.id}
-          onEditPost={openEditPostModal}
-          onReplyPost={openReplyModal}
-          onBackToHome={openHomePage}
-          passHomeUsername={handleOpenUserProfile}
-        />
-      ) : isReplies ? (
-        <ReplyFeed
-          currentUserId={user?.id}
-          onEditPost={openEditPostModal}
-          onReplyPost={openReplyModal}
-          onBackToHome={openHomePage}
-          passHomeUsername={handleOpenUserProfile}
-        />
-      ) : isProfileView ? (
-        <ProfileFeed
-          currentUserId={user?.id}
-          onEditPost={openEditPostModal}
-          onReplyPost={openReplyModal}
-          onBackToHome={openHomePage}
-          passHomeUsername={handleOpenUserProfile}
-        />
-      ) : isNotificationView ? (
-        <NotificationFeed
-          currentUserId={user?.id}
-          onBackToHome={openHomePage}
-          passHomeUsername={handleOpenUserProfile}
-        />
-      ) : (
-        <MainFeed
-          currentUserId={user?.id}
-          onEditPost={openEditPostModal}
-          onReplyPost={openReplyModal}
-          passHomeUsername={handleOpenUserProfile}
-        />
-      )}
+        {isSearchView ? (
+          <SearchFeed
+            currentUserId={user?.id}
+            onBackToHome={openHomePage}
+            passHomeUsername={handleOpenUserProfile}
+          />
+        ) : isBookmarkView ? (
+          <BookmarkFeed
+            currentUserId={user?.id}
+            onEditPost={openEditPostModal}
+            onReplyPost={openReplyModal}
+            onBackToHome={openHomePage}
+            passHomeUsername={handleOpenUserProfile}
+          />
+        ) : isReplies ? (
+          <ReplyFeed
+            currentUserId={user?.id}
+            onEditPost={openEditPostModal}
+            onReplyPost={openReplyModal}
+            onBackToHome={openHomePage}
+            passHomeUsername={handleOpenUserProfile}
+          />
+        ) : isProfileView ? (
+          <ProfileFeed
+            currentUserId={user?.id}
+            onEditPost={openEditPostModal}
+            onReplyPost={openReplyModal}
+            onBackToHome={openHomePage}
+            passHomeUsername={handleOpenUserProfile}
+          />
+        ) : isNotificationView ? (
+          <NotificationFeed
+            currentUserId={user?.id}
+            onBackToHome={openHomePage}
+            passHomeUsername={handleOpenUserProfile}
+          />
+        ) : (
+          <MainFeed
+            currentUserId={user?.id}
+            onEditPost={openEditPostModal}
+            onReplyPost={openReplyModal}
+            passHomeUsername={handleOpenUserProfile}
+          />
+        )}
 
       <RightSidebar
         passHomeUsername={handleOpenUserProfile}

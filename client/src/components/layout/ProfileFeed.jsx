@@ -170,13 +170,7 @@ function ProfileFeed({
           `/users/${profileUser.id}/followers?page=${page}`
         );
       }
-      const newItems =
-        res.data.posts ||
-        res.data.replies ||
-        res.data.likes ||
-        res.data.following ||
-        res.data.followers ||
-        [];
+      const newItems = res.data[selectedTab] || [];
       setItems((prev) => (page === 1 ? newItems : [...prev, ...newItems]));
       setHasMore(newItems.length > 0);
     } catch (err) {
@@ -407,7 +401,7 @@ function ProfileFeed({
             {selectedTab === "posts" &&
               items.map((post, index) => (
                 <PostCard
-                  key={index}
+                  key={`post-${post.id ?? `fallback-${index}`}`}
                   post={post}
                   currentUserId={currentUserId}
                   onDelete={handleDelete}
@@ -421,12 +415,11 @@ function ProfileFeed({
               ))}
             {selectedTab === "replies" &&
               items.map((reply, index) => (
-                <Box key={index} mb={4}>
+                <Box key={`reply-${reply.reply_id ?? `fallback-${index}`}`} mb={4}>
                   {" "}
                   {/* Add spacing between each reply block */}
                   <PostCard
                     post={{
-                      id: reply.reply_id,
                       content: reply.reply_content,
                       date: reply.reply_date,
                       image_url: reply.reply_image_url,
@@ -435,7 +428,6 @@ function ProfileFeed({
                       real_name: reply.reply_real_name,
                       avatar_url: reply.reply_avatar_url,
                       parent: {
-                        id: reply.tweet_id,
                         content: reply.tweet_content,
                         date: reply.tweet_date,
                         image_url: reply.tweet_image_url,
@@ -467,9 +459,9 @@ function ProfileFeed({
               ))}
 
             {selectedTab === "likes" &&
-              items.map((post) => (
+              items.map((post, index) => (
                 <PostCard
-                  key={post.id}
+                  key={`likes-${post.id ?? `fallback-${index}`}`}
                   post={post}
                   currentUserId={currentUserId}
                   onDelete={handleDelete}
@@ -485,7 +477,7 @@ function ProfileFeed({
             {selectedTab === "following" &&
               items.map((user, index) => (
                 <SecondUserCard
-                  key={index}
+                  key={`following-${user.id ?? `fallback-${index}`}`}
                   user={user}
                   currentUserId={currentUserId}
                   passUsername={passUsername}
@@ -496,7 +488,7 @@ function ProfileFeed({
             {selectedTab === "followers" &&
               items.map((user, index) => (
                 <SecondUserCard
-                  key={index}
+                  key={`followers-${user.id ?? `fallback-${index}`}`}
                   user={user}
                   currentUserId={currentUserId}
                   passUsername={passUsername}

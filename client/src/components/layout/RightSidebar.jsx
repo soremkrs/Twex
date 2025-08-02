@@ -12,6 +12,9 @@ const SidebarContainer = styled(Box)(({ theme }) => ({
   position: "sticky",
   top: 0,
   height: "100vh",
+  [theme.breakpoints.down("md")]: {
+    display: "none", // hide on screens smaller than 960px
+  },
 }));
 
 const StyledBox = styled(Box)(({ theme }) => ({

@@ -11,10 +11,12 @@ import ExploreIcon from "@mui/icons-material/TravelExplore";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import PersonIcon from "@mui/icons-material/Person";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 
 const Logo = styled("div")({
-  marginLeft: "15px",
-  marginBottom: "20px",
+  display: "flex",
+  justifyContent: "flex-start",
+  padding: "10px"
 });
 
 const NavButton = styled(Button)(({ theme }) => ({
@@ -30,9 +32,22 @@ const NavButton = styled(Button)(({ theme }) => ({
   "&:hover": {
     backgroundColor: "#111",
   },
+
+  [theme.breakpoints.down("md")]: {
+    justifyContent: "center",
+    padding: "10px 0",
+  },
 }));
 
-function LeftSidebar({ onClickHome, onClickExplore, onClickNotifications, onClickBookmarks, onClickProfile, onClickPost, hasNewNotification }) {
+function LeftSidebar({
+  onClickHome,
+  onClickExplore,
+  onClickNotifications,
+  onClickBookmarks,
+  onClickProfile,
+  onClickPost,
+  hasNewNotification,
+}) {
   const navItems = [
     {
       label: "Home",
@@ -76,10 +91,9 @@ function LeftSidebar({ onClickHome, onClickExplore, onClickNotifications, onClic
     },
   ];
 
-
   return (
     <Box
-      width="240px"
+      width={{ xs: "80px", md: "240px" }}
       p={2}
       display="flex"
       flexDirection="column"
@@ -93,7 +107,14 @@ function LeftSidebar({ onClickHome, onClickExplore, onClickNotifications, onClic
     >
       <Box>
         <Logo>
-          <img src={TXLogo} alt="Tx Logo" height={50} />
+          <Box
+            component="img"
+            src={TXLogo}
+            alt="Tx Logo"
+            sx={{
+              height: { xs: 30, md: 40 }, // responsive height in pixels
+            }}
+          />
         </Logo>
         <Stack spacing={2}>
           {navItems.map(({ label, icon, onClick }) => (
@@ -102,14 +123,29 @@ function LeftSidebar({ onClickHome, onClickExplore, onClickNotifications, onClic
                 <Box mr={2} display="flex" justifyContent="center">
                   {icon}
                 </Box>
-                {label}
+                <Box
+                  ml={2}
+                  display={{ xs: "none", md: "block" }}
+                  whiteSpace="nowrap"
+                >
+                  {label}
+                </Box>
               </Box>
             </NavButton>
           ))}
         </Stack>
       </Box>
       <Box display="flex" flexDirection="column" gap={5}>
-        <PostButton onClick={onClickPost} />
+        {/* Post Button - full button on desktop, icon only on mobile */}
+        <Box display={{ xs: "none", md: "block" }}>
+          <PostButton onClick={onClickPost} />
+        </Box>
+        <Box display={{ xs: "flex", md: "none" }} justifyContent="center">
+          <Button onClick={onClickPost} sx={{ minWidth: 0, p: 1 }}>
+            <AddCircleIcon sx={{ fontSize: 40, color: "#1DA1F2" }} />
+          </Button>
+        </Box>
+
         <UserCard />
       </Box>
     </Box>

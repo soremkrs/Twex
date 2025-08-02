@@ -1,41 +1,66 @@
 .page {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .container {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .login-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 200px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 200px;
 }
 
 .login-left img {
-    object-fit: contain;
-    height: 450px;
+  object-fit: contain;
+  height: 450px;
 }
 
 .login-right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    width: 450px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 450px;
 }
 
 .login-right h3 {
-    font-size: 1.8rem;
-    margin: 0 0 40px 0;
+  font-size: 1.8rem;
+  margin: 0 0 40px 0;
 }
 
 .login-right h4 {
-    margin: 60px 0 20px 0;
+  margin: 60px 0 20px 0;
+}
+
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+    gap: 40px; /* smaller gap for mobile */
+    padding: 20px;
+  }
+
+  .login-left img {
+    width: 100%;
+    height: auto;
+    max-height: 300px; /* limit image height on mobile */
+  }
+
+  .login-right {
+    width: 100%;
+    align-items: center; /* center-align form elements */
+    text-align: center;
+  }
+
+  .login-right h3,
+  .login-right h4 {
+    margin: 20px 0;
+  }
 }

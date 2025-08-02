@@ -5,8 +5,12 @@ import { useAuth } from "../../contexts/useAuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import LoadingModal from "../modals/LoadingModal";
 import axiosInstance from "../../utils/axiosConfig";
+import { useMediaQuery, useTheme } from "@mui/material";
 
 function UserCard() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,6 +55,7 @@ function UserCard() {
         <Box
           display="flex"
           alignItems="center"
+          justifyContent="center"
           gap={1}
           p={2}
           onClick={handleMenuOpen}
@@ -70,17 +75,21 @@ function UserCard() {
             alt={user.real_name || user.username}
             sx={{ width: 48, height: 48 }}
           />
-          <Box>
-            <Typography fontWeight={700} fontSize="0.95rem">
-              {user.real_name || user.username}
-            </Typography>
-            <Typography variant="body2" color="gray">
-              @{user.username}
-            </Typography>
-          </Box>
-          <Box ml="auto">
-            <MoreHorizIcon />
-          </Box>
+          {!isMobile && (
+            <>
+              <Box>
+                <Typography fontWeight={700} fontSize="0.95rem">
+                  {user.real_name || user.username}
+                </Typography>
+                <Typography variant="body2" color="gray">
+                  @{user.username}
+                </Typography>
+              </Box>
+              <Box ml="auto">
+                <MoreHorizIcon />
+              </Box>
+            </>
+          )}
         </Box>
 
         {/* Dropdown Menu */}
