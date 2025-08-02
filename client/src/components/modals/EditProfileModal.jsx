@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -139,7 +139,7 @@ function EditProfileModal() {
   const [hide, setHide] = useState(false);
 
   // Populate form once user is available
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       setFormData({
         realName: user.real_name || user.username || "",
@@ -186,13 +186,13 @@ function EditProfileModal() {
       // Navigate back to the previous page (not -1)
       if (backgroundLocation) {
         navigate(backgroundLocation.pathname, {
-          state: { refresh: true },
+          state: { refresh: true, profileEdit: true },
           replace: true,
         });
       } else {
         // fallback if backgroundLocation is missing
         navigate("/home", {
-          state: { refresh: true },
+          state: { refresh: true, profileEdit: true },
         });
       }
     } catch (err) {

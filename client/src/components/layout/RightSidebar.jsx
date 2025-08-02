@@ -3,7 +3,8 @@ import { Box, TextField, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import axiosInstance from "../../utils/axiosConfig";
 import SecondUserCard from "../cards/SecondUserCard";
-import Footer from "../footer/Footer"
+import Footer from "../footer/Footer";
+import CustomSnackbar from "../ui/CustomSnackbar";
 
 const SidebarContainer = styled(Box)(({ theme }) => ({
   width: "300px",
@@ -24,24 +25,29 @@ const StyledBox = styled(Box)(({ theme }) => ({
   padding: theme.spacing(2),
 }));
 
-function RightSidebar({passHomeUsername, passSearch}) {
+function RightSidebar({ passHomeUsername, passSearch }) {
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-  const fetchSuggestions = async () => {
-    try {
-      const res = await axiosInstance.get("/users/suggestions?limit=5");
-      setSuggestedUsers(res.data.users);
-    } catch (err) {
-      console.error("Failed to fetch suggestions:", err);
-    }
+  const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+
+  const showSnackbar = (message) => {
+    setSnackbar({ open: true, message });
   };
-  fetchSuggestions();
-}, []);
 
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      try {
+        const res = await axiosInstance.get("/users/suggestions?limit=5");
+        setSuggestedUsers(res.data.users);
+      } catch (err) {
+        console.error("Failed to fetch suggestions:", err);
+      }
+    };
+    fetchSuggestions();
+  }, []);
 
-   const passUsername = (username) => {
+  const passUsername = (username) => {
     passHomeUsername(username);
   };
 
@@ -90,6 +96,7 @@ function RightSidebar({passHomeUsername, passSearch}) {
             passUsername={passUsername}
             notifications={false}
             sideBar={true}
+            showSnackbar={showSnackbar}
           />
         ))}
       </StyledBox>
@@ -98,6 +105,11 @@ function RightSidebar({passHomeUsername, passSearch}) {
       <Box mt={4} color="gray" fontSize="12px" textAlign="left">
         <Footer />
       </Box>
+      <CustomSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </SidebarContainer>
   );
 }

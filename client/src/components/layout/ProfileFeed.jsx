@@ -17,6 +17,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import SecondUserCard from "../cards/SecondUserCard";
 import CircularProgress from "@mui/material/CircularProgress";
+import CustomSnackbar from "../ui/CustomSnackbar";
 
 const ProfileContainer = styled(Box)(({ theme }) => ({
   flex: 1,
@@ -91,6 +92,12 @@ function ProfileFeed({
   const [items, setItems] = useState([]);
 
   const observer = useRef();
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+
+  const showSnackbar = (message) => {
+    setSnackbar({ open: true, message });
+  };
 
   const lastItemRef = useCallback(
     (node) => {
@@ -197,6 +204,11 @@ function ProfileFeed({
       setItems([]);
       setHasMore(true);
       fetchProfileUser();
+      if (location.state?.profileEdit) {
+        showSnackbar("Your profile was edit!")
+      } else {
+        showSnackbar("Your post was sent!")
+      }
       // Clear the refresh state to avoid repeated fetches
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -206,6 +218,7 @@ function ProfileFeed({
     const postId = location.state?.editPostId;
     if (postId) {
       refreshSinglePostById(postId);
+      showSnackbar("Your post was edit!")
       // Clear it so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -215,6 +228,7 @@ function ProfileFeed({
     const postId = location.state?.repliedToPostId;
     if (postId) {
       refreshSinglePostById(postId);
+      showSnackbar("Your reply was sent!")
       // Clear it so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -268,6 +282,7 @@ function ProfileFeed({
         await axiosInstance.post(`/follow/${profileUser.id}`);
       }
       setIsFollowing((prev) => !prev);
+      showSnackbar(!isFollowing ? `You followed ${profileUser.username}` : `You unfollowed ${profileUser.username}` )
       fetchProfileUser();
     } catch (err) {
       console.error("Follow/unfollow error:", err);
@@ -407,16 +422,21 @@ function ProfileFeed({
                   onReply={onReplyPost}
                   viewReply={handleViewReplies}
                   passUsername={passUsername}
+                  showSnackbar={showSnackbar}
                   variant="default"
                 />
               ))}
             {selectedTab === "replies" &&
               items.map((reply, index) => (
-                <Box key={`reply-${reply.reply_id ?? `fallback-${index}`}`} mb={4}>
+                <Box
+                  key={`reply-${reply.reply_id ?? `fallback-${index}`}`}
+                  mb={4}
+                >
                   {" "}
                   {/* Add spacing between each reply block */}
                   <PostCard
                     post={{
+                      id: reply.reply_id,
                       content: reply.reply_content,
                       date: reply.reply_date,
                       image_url: reply.reply_image_url,
@@ -425,6 +445,7 @@ function ProfileFeed({
                       real_name: reply.reply_real_name,
                       avatar_url: reply.reply_avatar_url,
                       parent: {
+                        id: reply.tweet_id,
                         content: reply.tweet_content,
                         date: reply.tweet_date,
                         image_url: reply.tweet_image_url,
@@ -442,6 +463,7 @@ function ProfileFeed({
                     onReply={onReplyPost}
                     viewReply={handleViewReplies}
                     passUsername={passUsername}
+                    showSnackbar={showSnackbar}
                   />
                   <Box
                     mt={5}
@@ -467,6 +489,7 @@ function ProfileFeed({
                   onReply={onReplyPost}
                   viewReply={handleViewReplies}
                   passUsername={passUsername}
+                  showSnackbar={showSnackbar}
                   variant="default"
                 />
               ))}
@@ -479,6 +502,7 @@ function ProfileFeed({
                   currentUserId={currentUserId}
                   passUsername={passUsername}
                   refreshPosts={{ fetchTabItems, fetchProfileUser }}
+                  showSnackbar={showSnackbar}
                 />
               ))}
 
@@ -490,6 +514,7 @@ function ProfileFeed({
                   currentUserId={currentUserId}
                   passUsername={passUsername}
                   refreshPosts={{ fetchTabItems, fetchProfileUser }}
+                  showSnackbar={showSnackbar}
                 />
               ))}
 
@@ -521,6 +546,11 @@ function ProfileFeed({
           )}
         </>
       )}
+      <CustomSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </ProfileContainer>
   );
 }

@@ -13,6 +13,7 @@ import axiosInstance from "../../utils/axiosConfig";
 import LoadingModal from "../modals/LoadingModal";
 import { useNavigate, useLocation } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
+import CustomSnackbar from "../ui/CustomSnackbar";
 
 // Styled Components
 const FeedContainer = styled(Box)(({ theme }) => ({
@@ -80,8 +81,13 @@ function MainFeed({
   const navigate = useNavigate();
   const location = useLocation();
   const [initialLoading, setInitialLoading] = useState(true);
-
   const observer = useRef();
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+
+  const showSnackbar = (message) => {
+    setSnackbar({ open: true, message });
+  };
 
   const lastPostRef = useCallback(
     (node) => {
@@ -139,6 +145,11 @@ function MainFeed({
       setPosts([]);
       setHasMore(true);
       setFeedType("all"); // optional: force back to All feed
+      if (location.state?.profileEdit) {
+        showSnackbar("Your profile was edit!")
+      } else {
+        showSnackbar("Your post was sent!")
+      }
       // Clear the refresh state to avoid repeated fetches
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -148,6 +159,7 @@ function MainFeed({
     const postId = location.state?.editPostId;
     if (postId) {
       refreshSinglePostById(postId);
+      showSnackbar("Your post was edit!")
       // Clear it so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -157,6 +169,7 @@ function MainFeed({
     const postId = location.state?.repliedToPostId;
     if (postId) {
       refreshSinglePostById(postId);
+      showSnackbar("Your reply was sent!")
       // Clear it so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -209,6 +222,7 @@ function MainFeed({
           onReply={onReplyPost}
           viewReply={handleViewReplies}
           passUsername={passUsername}
+          showSnackbar={showSnackbar}
         />
       ))}
 
@@ -235,6 +249,11 @@ function MainFeed({
           <KeyboardArrowUpIcon />
         </ScrollTopButton>
       )}
+      <CustomSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </FeedContainer>
   );
 }

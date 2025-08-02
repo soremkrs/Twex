@@ -6,6 +6,7 @@ import PostCard from "../cards/PostCard";
 import axiosInstance from "../../utils/axiosConfig";
 import LoadingModal from "../modals/LoadingModal";
 import { useNavigate, useLocation } from "react-router-dom";
+import CustomSnackbar from "../ui/CustomSnackbar";
 
 // Styled Components
 const FeedContainer = styled(Box)(({ theme }) => ({
@@ -47,6 +48,12 @@ function BookmarkFeed({
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   const observer = useRef();
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+
+  const showSnackbar = (message) => {
+    setSnackbar({ open: true, message });
+  };
 
   const lastPostRef = useCallback(
     (node) => {
@@ -96,10 +103,7 @@ function BookmarkFeed({
 
   useEffect(() => {
     if (location.state?.refresh) {
-      // Reset post feed to page 1 and refresh
-      setPage(1);
-      setBookmarks([]);
-      setHasMore(true);
+      showSnackbar("Your post was sent!")
       // Clear the refresh state to avoid repeated fetches
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -109,6 +113,7 @@ function BookmarkFeed({
     const postId = location.state?.editPostId;
     if (postId) {
       refreshSingleBookmarkById(postId);
+      showSnackbar("Your post was edit!")
       // Clear it so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -118,6 +123,7 @@ function BookmarkFeed({
     const postId = location.state?.repliedToPostId;
     if (postId) {
       refreshSingleBookmarkById(postId);
+      showSnackbar("Your reply was sent!")
       // Clear it so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -184,6 +190,7 @@ function BookmarkFeed({
           onUnbookmark={handleUnbookmark}
           viewReply={handleViewReplies}
           passUsername={passUsername}
+          showSnackbar={showSnackbar}
         />
       ))}
 
@@ -204,6 +211,11 @@ function BookmarkFeed({
           <KeyboardArrowUpIcon />
         </ScrollTopButton>
       )}
+      <CustomSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </FeedContainer>
   );
 }

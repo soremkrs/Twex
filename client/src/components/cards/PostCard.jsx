@@ -40,6 +40,7 @@ function PostCard({
   onUnbookmark,
   passUsername,
   hideViewRepliesButton = false,
+  showSnackbar,
 }) {
   const {
     id,
@@ -59,10 +60,7 @@ function PostCard({
   const [anchorEl, setAnchorEl] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [liked, setLiked] = useState(liked_by_current_user);
-  const [bookmarked, setBookmarked] = useState(
-    post.bookmarked_by_current_user
-  );
-
+  const [bookmarked, setBookmarked] = useState(post.bookmarked_by_current_user);
   const open = Boolean(anchorEl);
   const isMyPost = user_id === currentUserId;
 
@@ -96,6 +94,7 @@ function PostCard({
     try {
       await axiosInstance.delete(`/delete/post/${id}`);
       onDelete?.(id);
+      showSnackbar?.("Post deleted");  
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -108,7 +107,10 @@ function PostCard({
     const method = isFollowing ? "delete" : "post";
 
     axiosInstance[method](endpoint)
-      .then(() => setIsFollowing(!isFollowing))
+      .then(() => {
+        setIsFollowing(!isFollowing);
+        showSnackbar?.(!isFollowing ? `You followed ${username}` : `You unfollowed ${username}` );
+      })
       .catch((err) => console.error("Follow toggle error", err));
     refreshPosts?.(id);
   };
@@ -120,6 +122,7 @@ function PostCard({
     axiosInstance[method](url)
       .then(() => {
         setLiked(!liked);
+        showSnackbar?.(!liked ? `You liked ${username} post` : `You unliked ${username} post` );
         refreshPosts?.(id);
       })
       .catch((err) => {
@@ -134,6 +137,7 @@ function PostCard({
       .delete(`/reply/${id}`) // id is the reply's ID
       .then(() => {
         refreshPosts?.(id); // Re-fetch the parent post and its replies
+        showSnackbar?.("Reply deleted");  
       })
       .catch((err) => {
         console.error("Error deleting reply", err);
@@ -145,11 +149,13 @@ function PostCard({
       if (bookmarked) {
         await axiosInstance.delete(`/unbookmark/${id}`);
         setBookmarked(false);
+        showSnackbar?.("Post deleted from bookmarks");
         if (onUnbookmark) onUnbookmark(id);
         refreshPosts?.(id);
       } else {
         await axiosInstance.post(`/bookmark/${id}`); // <-- URL param, no body
         setBookmarked(true);
+        showSnackbar?.("Post added to bookmarks");
         refreshPosts?.(id);
       }
     } catch (err) {
@@ -254,22 +260,24 @@ function PostCard({
                     </MenuItem>
                   )}
 
-                  {variant !== "reply" && total_replies > 0 && !hideViewRepliesButton &&(
-                    <MenuItem
-                      key="viewReplies"
-                      onClick={() => {
-                        viewReply(id);
-                        handleMenuClose();
-                      }}
-                      sx={{
-                        "&:hover": {
-                          backgroundColor: "#111",
-                        },
-                      }}
-                    >
-                      View replies ({total_replies})
-                    </MenuItem>
-                  )}
+                  {variant !== "reply" &&
+                    total_replies > 0 &&
+                    !hideViewRepliesButton && (
+                      <MenuItem
+                        key="viewReplies"
+                        onClick={() => {
+                          viewReply(id);
+                          handleMenuClose();
+                        }}
+                        sx={{
+                          "&:hover": {
+                            backgroundColor: "#111",
+                          },
+                        }}
+                      >
+                        View replies ({total_replies})
+                      </MenuItem>
+                    )}
                 </Menu>
               </>
             )

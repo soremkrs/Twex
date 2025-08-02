@@ -12,6 +12,7 @@ import SecondUserCard from "../cards/SecondUserCard";
 import axiosInstance from "../../utils/axiosConfig";
 import { debounce } from "lodash";
 import { useSearchParams } from "react-router-dom";
+import CustomSnackbar from "../ui/CustomSnackbar";
 
 // Styled container like NotificationFeed
 const FeedContainer = styled(Box)(({ theme }) => ({
@@ -33,6 +34,12 @@ function SearchFeed({ onBackToHome, passHomeUsername, currentUserId }) {
   const [searchQuery, setSearchQuery] = useState(queryParam);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+
+  const showSnackbar = (message) => {
+    setSnackbar({ open: true, message });
+  };
 
   useEffect(() => {
     setSearchQuery(queryParam);
@@ -133,8 +140,14 @@ function SearchFeed({ onBackToHome, passHomeUsername, currentUserId }) {
             passUsername={passHomeUsername}
             notifications={false}
             currentUserId={currentUserId}
+            showSnackbar={showSnackbar}
           />
         ))}
+      <CustomSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </FeedContainer>
   );
 }

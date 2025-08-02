@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Fab } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import axiosInstance from "../../utils/axiosConfig";
 import PostCard from "../cards/PostCard";
 import LoadingModal from "../modals/LoadingModal";
+import CustomSnackbar from "../ui/CustomSnackbar";
 
 // Styled Components
 const FeedContainer = styled(Box)(({ theme }) => ({
@@ -40,11 +41,17 @@ function ReplyFeed({
 }) {
   const navigate = useNavigate();
   const { id: postId } = useParams();
-
+  const location = useLocation();
   const [parentPost, setParentPost] = useState(null);
   const [replies, setReplies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+
+  const showSnackbar = (message) => {
+    setSnackbar({ open: true, message });
+  };
 
   const fetchReplies = async () => {
     setLoading(true);
@@ -70,6 +77,24 @@ function ReplyFeed({
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    if (location.state?.refresh) {
+      showSnackbar("Your post was sent!");
+      // Clear the refresh state to avoid repeated fetches
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location]);
+
+  useEffect(() => {
+    const postId = location.state?.editPostId;
+    if (postId) {
+      fetchReplies();
+      showSnackbar("Your post was edit!");
+      // Clear it so it doesn't trigger again
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location]);
 
   const passUsername = (username) => {
     passHomeUsername(username);
@@ -107,6 +132,7 @@ function ReplyFeed({
           onReply={onReplyPost}
           onDelete={handleDelete}
           passUsername={passUsername}
+          showSnackbar={showSnackbar}
           variant="default"
           hideViewRepliesButton={true}
           hideActions
@@ -122,6 +148,7 @@ function ReplyFeed({
           refreshPosts={fetchReplies}
           onReply={onReplyPost}
           passUsername={passUsername}
+          showSnackbar={showSnackbar}
           variant="reply"
         />
       ))}
@@ -142,6 +169,11 @@ function ReplyFeed({
           <KeyboardArrowUpIcon />
         </ScrollTopButton>
       )}
+      <CustomSnackbar
+        open={snackbar.open}
+        message={snackbar.message}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      />
     </FeedContainer>
   );
 }

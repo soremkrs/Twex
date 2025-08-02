@@ -25,6 +25,7 @@ function SecondUserCard({
   refreshPosts,
   notifications,
   sideBar,
+  showSnackbar,
 }) {
   const { id, username, real_name, avatar_url, bio, date } = user;
   const [isFollowing, setIsFollowing] = useState(false);
@@ -45,7 +46,10 @@ function SecondUserCard({
     const method = isFollowing ? "delete" : "post";
 
     axiosInstance[method](endpoint)
-      .then(() => setIsFollowing(!isFollowing))
+      .then(() => {
+        setIsFollowing(!isFollowing)
+        showSnackbar?.(!isFollowing ? `You followed ${username}` : `You unfollowed ${username}` );
+      })
       .catch((err) => console.error("Follow toggle error", err));
     if (refreshPosts?.fetchTabItems) await refreshPosts.fetchTabItems();
     if (refreshPosts?.fetchProfileUser) await refreshPosts.fetchProfileUser();
