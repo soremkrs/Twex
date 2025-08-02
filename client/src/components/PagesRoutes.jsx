@@ -32,7 +32,7 @@ function PagesRoutes() {
     {
       path: "/create-post",
       element: (
-        <ProtectedRoute condition={state?.fromHome === true} redirectTo="/">
+        <ProtectedRoute>
           <CreatePostModal />
         </ProtectedRoute>
       ),
@@ -40,7 +40,7 @@ function PagesRoutes() {
     {
       path: "/edit-post/:id",
       element: (
-        <ProtectedRoute condition={state?.fromHome === true} redirectTo="/">
+        <ProtectedRoute condition={state?.fromHome === true} redirectTo="/home">
           <EditPostModal />
         </ProtectedRoute>
       ),
@@ -48,7 +48,7 @@ function PagesRoutes() {
     {
       path: "/reply-post/:id",
       element: (
-        <ProtectedRoute condition={state?.fromHome === true} redirectTo="/">
+        <ProtectedRoute condition={state?.fromHome === true} redirectTo="/home">
           <ReplyModal />
         </ProtectedRoute>
       ),
@@ -56,7 +56,7 @@ function PagesRoutes() {
     {
       path: "/edit-profile",
       element: (
-        <ProtectedRoute condition={state?.fromHome === true} redirectTo="/">
+        <ProtectedRoute>
           <EditProfileModal />
         </ProtectedRoute>
       ),

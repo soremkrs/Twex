@@ -69,7 +69,7 @@ function Home() {
 
   const openPostModal = () => {
     navigate("/create-post", {
-      state: { backgroundLocation: location, fromHome: true },
+      state: { backgroundLocation: location },
     });
   };
 

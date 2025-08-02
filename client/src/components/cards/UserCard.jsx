@@ -37,11 +37,7 @@ function UserCard() {
   const handleEditProfile = () => {
     handleMenuClose();
     navigate("/edit-profile", {
-      state: {
-        user,
-        backgroundLocation: location,
-        fromHome: true,
-      },
+      state: { backgroundLocation: location },
     });
   };
 

@@ -222,10 +222,7 @@ function ProfileFeed({
 
   const handleEditProfile = () => {
     navigate("/edit-profile", {
-      state: {
-        backgroundLocation: location,
-        fromHome: true,
-      },
+      state: { backgroundLocation: location },
     });
   };
 
