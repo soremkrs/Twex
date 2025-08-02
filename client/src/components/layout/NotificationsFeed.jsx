@@ -4,7 +4,6 @@ import { styled } from "@mui/material/styles";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import axiosInstance from "../../utils/axiosConfig";
 import LoadingModal from "../modals/LoadingModal";
-import { useNavigate } from "react-router-dom";
 import SecondUserCard from "../cards/SecondUserCard";
 
 // Styled Components
@@ -32,20 +31,15 @@ const ScrollTopButton = styled(Fab)(({ theme }) => ({
 }));
 
 function NotificationFeed({
-  currentUserId,
-  onEditPost,
-  onReplyPost,
   onBackToHome,
   passHomeUsername,
 }) {
-  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [feedType, setFeedType] = useState("following");
-
   const observer = useRef();
 
   const lastPostRef = useCallback(
@@ -93,10 +87,6 @@ function NotificationFeed({
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const handleViewReplies = (postId) => {
-    navigate(`/posts/${postId}/replies`);
-  };
 
   const passUsername = (username) => {
     passHomeUsername(username);

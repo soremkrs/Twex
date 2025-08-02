@@ -223,8 +223,8 @@ function ProfileFeed({
   const handleEditProfile = () => {
     navigate("/edit-profile", {
       state: {
-        backgroundLocation: { pathname: `/${username}` },
-        fromHome: false,
+        backgroundLocation: location,
+        fromHome: true,
       },
     });
   };

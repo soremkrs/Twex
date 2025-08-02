@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -56,17 +56,17 @@ function PostCard({
     parent,
   } = post;
 
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [isFollowing, setIsFollowing] = React.useState(false);
-  const [liked, setLiked] = React.useState(liked_by_current_user);
-  const [bookmarked, setBookmarked] = React.useState(
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [liked, setLiked] = useState(liked_by_current_user);
+  const [bookmarked, setBookmarked] = useState(
     post.bookmarked_by_current_user
   );
 
   const open = Boolean(anchorEl);
   const isMyPost = user_id === currentUserId;
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user_id || isMyPost || variant === "reply") return;
 
     axiosInstance
@@ -77,11 +77,11 @@ function PostCard({
       .catch((err) => console.error("Follow check error", err));
   }, [user_id, isMyPost, variant]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setLiked(liked_by_current_user);
   }, [liked_by_current_user]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setBookmarked(post.bookmarked_by_current_user);
   }, [post.bookmarked_by_current_user]);
 
