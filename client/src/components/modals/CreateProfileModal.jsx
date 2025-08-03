@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +45,12 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     padding: theme.spacing(2),
     width: "800px",
     height: "800px",
+    [theme.breakpoints.down("sm")]: {
+      width: "90vw", // 90% of viewport width on small screens
+      height: "auto",
+      maxHeight: "90vh",
+      margin: "10px",
+    },
   },
   "& .MuiBackdrop-root": {
     backgroundColor: "rgba(71, 71, 71, 0.75)",
@@ -138,10 +148,6 @@ function CreateProfileModal() {
 
   const [hide, setHide] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
-
   const handleClose = () => {
     navigate(-1);
   };
@@ -185,10 +191,7 @@ function CreateProfileModal() {
   return (
     <StyledDialog open={!hide} onClose={handleClose}>
       <Header>
-        <IconButton
-          onClick={handleClose}
-          sx={{ color: "#fff", padding: "0" }}
-        >
+        <IconButton onClick={handleClose} sx={{ color: "#fff", padding: "0" }}>
           <CloseIcon />
         </IconButton>
       </Header>
@@ -277,17 +280,21 @@ function CreateProfileModal() {
           ))}
         </StyledTextField>
 
-        <StyledTextField
-          label="Date of Birth"
-          name="dateOfBirth"
-          id="dateOfBirth"
-          autoComplete="off"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          value={formData.dateOfBirth}
-          onChange={handleChange}
-          fullWidth
-        />
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="Date of Birth"
+            value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : null}
+            onChange={(newValue) => {
+              setFormData((prev) => ({
+                ...prev,
+                dateOfBirth: newValue ? newValue.format("YYYY-MM-DD") : "",
+              }));
+            }}
+            inputFormat="DD/MM/YYYY"
+            mask="__ / __ / ____"
+            renderInput={(params) => <StyledTextField {...params} fullWidth />}
+          />
+        </LocalizationProvider>
 
         <StyledTextField
           label="Bio"
