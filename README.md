@@ -115,3 +115,13 @@ npm run dev
 
 #Then visit 
 http://localhost:5173
+
+---
+
+Let me know if you'd like:
+- A `schema.sql` file generated from your DB structure
+- Deployment instructions
+- Better `.env.example` formatting
+- README with embedded screenshots or badges
+
+Ready to help polish or publish!
