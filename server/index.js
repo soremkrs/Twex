@@ -35,6 +35,8 @@ app.use(cors({ origin: process.env.ORIGIN_URL, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const isProduction = process.env.NODE_ENV === "production";
+
 // Configure session management with PostgreSQL as the storage
 app.use(
   session({
@@ -49,9 +51,9 @@ app.use(
     saveUninitialized: false, // Don't save empty sessions
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie lifespan (24 hours)
-      secure: process.env.SESSION_COOKIE_SECURE, // Should be true in production (with HTTPS)
+      secure: isProduction, // Should be true in production (with HTTPS)
       httpOnly: true, // Prevents client-side JS from accessing cookies
-      sameSite: process.env.SESSION_COOKIE_SAMESITE, // Helps with CSRF protection while still allowing top-level navigation
+      sameSite: isProduction ? "none" : "lax", // Helps with CSRF protection while still allowing top-level navigation
     },
   })
 );
