@@ -148,6 +148,10 @@ function CreateProfileModal() {
 
   const [hide, setHide] = useState(false);
 
+  const handleChange = (e) => {
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
   const handleClose = () => {
     navigate(-1);
   };
