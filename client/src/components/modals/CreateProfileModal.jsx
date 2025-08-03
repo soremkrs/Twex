@@ -294,9 +294,47 @@ function CreateProfileModal() {
                 dateOfBirth: newValue ? newValue.format("YYYY-MM-DD") : "",
               }));
             }}
-            inputFormat="DD/MM/YYYY"
-            mask="__ / __ / ____"
-            renderInput={(params) => <StyledTextField {...params} fullWidth />}
+            format="DD/MM/YYYY"
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                id: "dateOfBirth",
+                InputProps: {
+                  sx: {
+                    backgroundColor: "#000",
+                    color: "#fff",
+                    border: "1px solid #333",
+                    borderRadius: 2,
+                    pl: 1.5,
+                    "& .MuiSvgIcon-root": {
+                      color: "#fff",
+                    },
+                    "& input": {
+                      color: "#fff",
+                    },
+                  },
+                },
+                InputLabelProps: {
+                  sx: {
+                    color: "#888",
+                    "&.Mui-focused": {
+                      color: "#1d9bf0",
+                    },
+                  },
+                },
+                sx: {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#333",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#444",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1d9bf0",
+                  },
+                },
+              },
+            }}
           />
         </LocalizationProvider>
 

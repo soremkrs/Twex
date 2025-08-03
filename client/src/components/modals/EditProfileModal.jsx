@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 import {
   Dialog,
   DialogContent,
@@ -183,7 +187,7 @@ function EditProfileModal() {
       setUser(updatedUser);
 
       setHide(true);
-      // Navigate back to the previous page 
+      // Navigate back to the previous page
       if (backgroundLocation) {
         navigate(backgroundLocation.pathname, {
           state: { refresh: true, profileEdit: true },
@@ -305,17 +309,59 @@ function EditProfileModal() {
           ))}
         </StyledTextField>
 
-        <StyledTextField
-          label="Date of Birth"
-          name="dateOfBirth"
-          id="dateOfBirth"
-          autoComplete="off"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-          value={formData.dateOfBirth}
-          onChange={handleChange}
-          fullWidth
-        />
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DatePicker
+            label="Date of Birth"
+            value={formData.dateOfBirth ? dayjs(formData.dateOfBirth) : null}
+            onChange={(newValue) => {
+              setFormData((prev) => ({
+                ...prev,
+                dateOfBirth: newValue ? newValue.format("YYYY-MM-DD") : "",
+              }));
+            }}
+            format="DD/MM/YYYY"
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                id: "dateOfBirth",
+                InputProps: {
+                  sx: {
+                    backgroundColor: "#000",
+                    color: "#fff",
+                    border: "1px solid #333",
+                    borderRadius: 2,
+                    pl: 1.5,
+                    "& .MuiSvgIcon-root": {
+                      color: "#fff",
+                    },
+                    "& input": {
+                      color: "#fff",
+                    },
+                  },
+                },
+                InputLabelProps: {
+                  sx: {
+                    color: "#888",
+                    "&.Mui-focused": {
+                      color: "#1d9bf0",
+                    },
+                  },
+                },
+                sx: {
+                  "& .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#333",
+                  },
+                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#444",
+                  },
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#1d9bf0",
+                  },
+                },
+              },
+            }}
+          />
+        </LocalizationProvider>
 
         <StyledTextField
           label="Bio"
