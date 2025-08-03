@@ -64,7 +64,8 @@ function Home() {
 
   const openProfilePage = () => {
     if (user?.username) {
-      navigate(`/${user.username}`);
+      const encodedUsername = encodeURIComponent(user.username);
+      navigate(`/${encodedUsername}`);
     }
   };
 
@@ -87,7 +88,8 @@ function Home() {
   };
 
   const handleOpenUserProfile = ({ clickedUser, parentUser = null }) => {
-    navigate(`/${clickedUser}`);
+    const encodedUsername = encodeURIComponent(clickedUser);
+    navigate(`/${encodedUsername}`);
   };
 
   const isBookmarkView = path === "/bookmarks";
