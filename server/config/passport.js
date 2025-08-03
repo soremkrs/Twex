@@ -84,10 +84,21 @@ export default function configurePassport(passport) {
 
   // Deserialize user by ID from session cookie, fetching full user data from DB
   passport.deserializeUser(async (id, done) => {
-    const res = await db.query(
-      "SELECT *, TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth FROM users WHERE id = $1",
-      [id]
-    );
-    done(null, res.rows[0]);
+    try {
+      const res = await db.query(
+        "SELECT *, TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth FROM users WHERE id = $1",
+        [id]
+      );
+
+      const user = res.rows[0];
+
+      if (!user) {
+        return done(null, false); // user not found, cleanly end session
+      }
+
+      return done(null, user);
+    } catch (err) {
+      return done(err); // handle unexpected error
+    }
   });
 }
