@@ -64,8 +64,7 @@ function Home() {
 
   const openProfilePage = () => {
     if (user?.username) {
-      const encodedUsername = encodeURIComponent(user.username);
-      navigate(`/${encodedUsername}`);
+      navigate(`/${user.username}`);
     }
   };
 
@@ -88,14 +87,13 @@ function Home() {
   };
 
   const handleOpenUserProfile = ({ clickedUser, parentUser = null }) => {
-    const encodedUsername = encodeURIComponent(clickedUser);
-    navigate(`/${encodedUsername}`);
+    navigate(`/${clickedUser}`);
   };
 
   const isBookmarkView = path === "/bookmarks";
   const isReplies = path.startsWith("/posts/") && path.endsWith("/replies");
   const isProfileView =
-    !!username && path === `/${username}` && !isReplies && !isBookmarkView;
+    !!username && path === `/${encodeURIComponent(username)}` && !isReplies && !isBookmarkView;
   const isNotificationView = path === "/notifications";
   const isSearchView = path === "/explore";
 
