@@ -2,10 +2,12 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/useAuthContext";
 import axiosInstance from "../utils/axiosConfig";
+import { Box } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
 
 function GoogleRedirectHandler() {
   const navigate = useNavigate();
-  const { setUser } = useAuth(); 
+  const { setUser } = useAuth();
 
   useEffect(() => {
     axiosInstance
@@ -23,7 +25,11 @@ function GoogleRedirectHandler() {
       });
   }, []);
 
-  return <div>Logging you in via Google...</div>;
+  return (
+    <Box display="flex" justifyContent="center" py={3}>
+      <CircularProgress size={28} sx={{ color: "#1d9bf0" }} />
+    </Box>
+  );
 }
 
 export default GoogleRedirectHandler;
