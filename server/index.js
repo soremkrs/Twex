@@ -37,6 +37,12 @@ app.use(express.urlencoded({ extended: true }));
 
 app.set('trust proxy', 1); 
 
+app.use((req, res, next) => {
+  console.log('Request protocol:', req.protocol);
+  console.log('X-Forwarded-Proto:', req.headers['x-forwarded-proto']);
+  next();
+});
+
 // Configure session management with PostgreSQL as the storage
 app.use(
   session({
@@ -51,9 +57,9 @@ app.use(
     saveUninitialized: false, // Don't save empty sessions
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // Cookie lifespan (24 hours)
-      secure: true, // Should be true in production (with HTTPS) and false in development
+      secure: process.env.NODE_ENV === "production", // Should be true in production (with HTTPS) and false in development
       httpOnly: true, // Prevents client-side JS from accessing cookies
-      sameSite: "none" // lax in development
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // lax in development
     },
   })
 );
