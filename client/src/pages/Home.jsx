@@ -11,11 +11,12 @@ import ProfileFeed from "../components/layout/ProfileFeed";
 import NotificationFeed from "../components/layout/NotificationsFeed";
 import axiosInstance from "../utils/axiosConfig";
 import SearchFeed from "../components/layout/SearchFeed";
+import LoadingModal from "../components/modals/LoadingModal";
 
 function Home() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { username } = useParams();
   const [hasNewNotification, setHasNewNotification] = useState(false);
 
@@ -95,6 +96,12 @@ function Home() {
     !!username && path === `/${username}` && !isReplies && !isBookmarkView;
   const isNotificationView = path === "/notifications";
   const isSearchView = path === "/explore";
+
+  if (loading || !user) {
+    return (
+     <LoadingModal Open={true} Message={"Loading..."} />
+    );
+  }
 
   return (
     <Box
