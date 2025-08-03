@@ -10,6 +10,7 @@ import EditProfileModal from "./modals/EditProfileModal";
 import CreatePostModal from "./modals/CreatePostModal";
 import EditPostModal from "./modals/EditPostModal";
 import ReplyModal from "./modals/ReplyModal";
+import GoogleRedirectHandler from "../pages/GoogleRedirectHandler";
 
 function PagesRoutes() {
   const location = useLocation();
@@ -69,6 +70,7 @@ function PagesRoutes() {
       {/* Main routes */}
       <Routes location={backgroundLocation || location}>
         <Route path="/" element={<Login />} />
+        <Route path="/google-redirect" element={<GoogleRedirectHandler />} />
 
         <Route
           path="/home"

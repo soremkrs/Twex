@@ -21,7 +21,9 @@ router.post("/signup", async (req, res, next) => {
       [email, username]
     );
     if (existing.rows.length > 0)
-      return res.status(400).json({ message: "Email or username already in use" });
+      return res
+        .status(400)
+        .json({ message: "Email or username already in use" });
 
     // Hash the password securely
     const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -75,12 +77,13 @@ router.get(
 // Route: Google OAuth callback URL after authentication
 router.get(
   "/google/twex",
-  passport.authenticate("google", {
-    failureRedirect: "/", // Redirect here if authentication fails
-    successRedirect: `${process.env.FRONTEND_URL}/home`, // Redirect here on success
-    session: true, // Enable sessions for authenticated user
-  })
+  passport.authenticate("google", { failureRedirect: "/" }),
+  (req, res) => {
+    // Redirect to a frontend route that handles the session check and redirection
+    res.redirect(`${process.env.FRONTEND_URL}/google-redirect`);
+  }
 );
+
 
 // Route: Check if user is logged in - returns user info or null
 router.get("/check", (req, res) => {

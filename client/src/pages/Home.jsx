@@ -99,7 +99,7 @@ function Home() {
 
   if (loading || !user) {
     return (
-     <LoadingModal Open={true} Message={"Loading..."} />
+     <LoadingModal Open={loading} Message={"Loading..."} />
     );
   }
 
