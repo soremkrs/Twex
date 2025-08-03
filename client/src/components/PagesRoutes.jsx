@@ -17,6 +17,7 @@ function PagesRoutes() {
 
   const backgroundLocation = state?.backgroundLocation || null;
 
+  // Modal-only routes, rendered on top of background pages
   const modalRoutes = [
     { path: "/create-account", element: <CreateAccountModal /> },
     { path: "/sign-in", element: <SignInModal /> },
@@ -122,11 +123,13 @@ function PagesRoutes() {
             </ProtectedRoute>
           }
         />
+        {/* Fallback for modal routes if there's no background page to render under the modal */}
         {!backgroundLocation &&
           modalRoutes.map(({ path, element }) => (
             <Route key={path} path={path} element={element} />
           ))}
       </Routes>
+      {/* When there's a backgroundLocation, render modal routes separately on top */}
       {state?.backgroundLocation && (
         <Routes>
           {modalRoutes.map(({ path, element }) => (

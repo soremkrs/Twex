@@ -99,6 +99,7 @@ function ProfileFeed({
     setSnackbar({ open: true, message });
   };
 
+  // Used for infinite scrolling when the last item comes into view
   const lastItemRef = useCallback(
     (node) => {
       if (loading || !hasMore) return;
@@ -113,8 +114,10 @@ function ProfileFeed({
     [loading, hasMore]
   );
 
+  // Determines if the profile belongs to the current user
   const isCurrentUser = profileUser && currentUserId === profileUser.id;
 
+  // Fetch whether the current user is following this profile
   useEffect(() => {
     if (!profileUser || !currentUserId || profileUser.id === currentUserId)
       return;
@@ -127,6 +130,7 @@ function ProfileFeed({
       .catch((err) => console.error("Follow check error", err));
   }, [profileUser, currentUserId]);
 
+  // Fetch profile data by username
   const fetchProfileUser = async () => {
     setLoading(true);
 
@@ -140,16 +144,19 @@ function ProfileFeed({
     }
   };
 
+  // Fetch profile when the URL param changes
   useEffect(() => {
     fetchProfileUser();
   }, [username]);
 
+  // Reset list when user or tab changes
   useEffect(() => {
     setItems([]);
     setPage(1);
     setHasMore(true);
   }, [selectedTab, profileUser?.id]);
 
+  // Fetch items for selected tab and page
   const fetchTabItems = useCallback(async () => {
     if (!profileUser?.id) return;
     if (page === 1) setInitialLoading(true);
@@ -187,10 +194,12 @@ function ProfileFeed({
     }
   }, [page, selectedTab, profileUser?.id]);
 
+  // Fetch when dependencies change
   useEffect(() => {
     fetchTabItems();
   }, [fetchTabItems]);
 
+  // Toggle scroll-to-top button
   useEffect(() => {
     const onScroll = () => setShowScrollTop(window.scrollY > 400);
     window.addEventListener("scroll", onScroll);
@@ -310,6 +319,7 @@ function ProfileFeed({
         <Typography color="gray">User not found</Typography>
       ) : (
         <>
+          {/* Header with Back button */}
           <Box
             sx={{
               display: "flex",
@@ -326,7 +336,7 @@ function ProfileFeed({
               Back to Feed
             </Typography>
           </Box>
-
+          {/* Avatar and follow/edit profile button */}
           <Box
             display="flex"
             alignItems="center"
@@ -408,7 +418,7 @@ function ProfileFeed({
             <CustomToggleButton value="following">Following</CustomToggleButton>
             <CustomToggleButton value="followers">Followers</CustomToggleButton>
           </CustomToggleButtonGroup>
-
+          {/* Tab content rendering (posts, replies, etc.) */}
           <Box>
             {selectedTab === "posts" &&
               items.map((post, index) => (
@@ -546,6 +556,7 @@ function ProfileFeed({
           )}
         </>
       )}
+      {/* Snackbar for feedback */}
       <CustomSnackbar
         open={snackbar.open}
         message={snackbar.message}

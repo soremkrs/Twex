@@ -36,12 +36,13 @@ function PostCard({
   onReply,
   viewReply,
   variant = "default", // "default" | "reply"
-  hideActions = false,
+  hideActions = false,  // Whether to hide like/reply/bookmark actions
   onUnbookmark,
   passUsername,
-  hideViewRepliesButton = false,
-  showSnackbar,
-}) {
+  hideViewRepliesButton = false,  // Whether to hide "View replies" option
+  showSnackbar,  // Function to show feedback messages
+}) { 
+  // Destructure post details 
   const {
     id,
     content,
@@ -64,6 +65,7 @@ function PostCard({
   const open = Boolean(anchorEl);
   const isMyPost = user_id === currentUserId;
 
+  // Check follow status when post loads (only for non-replies by other users)
   useEffect(() => {
     if (!user_id || isMyPost || variant === "reply") return;
 
@@ -75,10 +77,12 @@ function PostCard({
       .catch((err) => console.error("Follow check error", err));
   }, [user_id, isMyPost, variant]);
 
+  // Keep local `liked` state in sync with props
   useEffect(() => {
     setLiked(liked_by_current_user);
   }, [liked_by_current_user]);
 
+  // Sync bookmark state when parent updates it
   useEffect(() => {
     setBookmarked(post.bookmarked_by_current_user);
   }, [post.bookmarked_by_current_user]);
@@ -153,7 +157,7 @@ function PostCard({
         if (onUnbookmark) onUnbookmark(id);
         refreshPosts?.(id);
       } else {
-        await axiosInstance.post(`/bookmark/${id}`); // <-- URL param, no body
+        await axiosInstance.post(`/bookmark/${id}`); 
         setBookmarked(true);
         showSnackbar?.("Post added to bookmarks");
         refreshPosts?.(id);

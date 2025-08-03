@@ -9,13 +9,13 @@ import { useMediaQuery, useTheme } from "@mui/material";
 
 function UserCard() {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md")); // Responsive layout check
 
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout } = useAuth();  // Auth context values
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null); // Controls menu open/close state
   const menuOpen = Boolean(anchorEl);
 
   const handleMenuOpen = (e) => {
@@ -44,7 +44,7 @@ function UserCard() {
   if (loading) {
     return <LoadingModal Open={loading} Message="Editing profile..." />;
   } else if (!user) {
-    return null;
+    return null;  // Avoid rendering if user isn't loaded
   } else {
     return (
       <>
@@ -71,6 +71,7 @@ function UserCard() {
             alt={user.real_name || user.username}
             sx={{ width: 48, height: 48 }}
           />
+          {/* Show name/username only on non-mobile screens */}
           {!isMobile && (
             <>
               <Box>
@@ -88,7 +89,7 @@ function UserCard() {
           )}
         </Box>
 
-        {/* Dropdown Menu */}
+        {/* Account menu with Edit Profile & Logout */}
         <Menu
           anchorEl={anchorEl}
           open={menuOpen}
@@ -105,6 +106,7 @@ function UserCard() {
               minWidth: 220,
               overflow: "visible",
               position: "absolute",
+              // Custom arrow styling
               "&::before": {
                 content: '""',
                 position: "absolute",

@@ -14,7 +14,7 @@ import { debounce } from "lodash";
 import { useSearchParams } from "react-router-dom";
 import CustomSnackbar from "../ui/CustomSnackbar";
 
-// Styled container like NotificationFeed
+// Styled container
 const FeedContainer = styled(Box)(({ theme }) => ({
   flex: 1,
   padding: theme.spacing(2),
@@ -28,6 +28,7 @@ const FeedContainer = styled(Box)(({ theme }) => ({
 }));
 
 function SearchFeed({ onBackToHome, passHomeUsername, currentUserId }) {
+  // Read the query string (?q=something) from the URL
   const [searchParams] = useSearchParams();
   const queryParam = searchParams.get("q") || "";
 
@@ -41,13 +42,14 @@ function SearchFeed({ onBackToHome, passHomeUsername, currentUserId }) {
     setSnackbar({ open: true, message });
   };
 
+  // Sync input state with the URL's `q` parameter
   useEffect(() => {
     setSearchQuery(queryParam);
   }, [queryParam]);
 
-  // Debounced search function
+  // Debounced search function: waits for 500ms after typing stops
   const debouncedSearch = debounce(async (query) => {
-    if (!query.trim()) return setUsers([]);
+    if (!query.trim()) return setUsers([]); // Don't search empty string
     setLoading(true);
 
     try {
@@ -62,9 +64,10 @@ function SearchFeed({ onBackToHome, passHomeUsername, currentUserId }) {
     }
   }, 500);
 
+  // Run search whenever `searchQuery` changes
   useEffect(() => {
     debouncedSearch(searchQuery);
-    return () => debouncedSearch.cancel();
+    return () => debouncedSearch.cancel();  // Cleanup debounce on unmount/change
   }, [searchQuery]);
 
   return (

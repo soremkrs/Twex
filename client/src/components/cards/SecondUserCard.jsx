@@ -30,6 +30,7 @@ function SecondUserCard({
   const { id, username, real_name, avatar_url, bio, date } = user;
   const [isFollowing, setIsFollowing] = useState(false);
 
+  // On mount, check follow status (only if it's not your own profile)
   useEffect(() => {
     if (currentUserId !== id) {
       axiosInstance
@@ -41,6 +42,7 @@ function SecondUserCard({
     }
   }, [id, currentUserId]);
 
+  // Follow/unfollow user when button is clicked
   const handleFollowToggle = async () => {
     const endpoint = isFollowing ? `/unfollow/${id}` : `/follow/${id}`;
     const method = isFollowing ? "delete" : "post";
@@ -51,6 +53,8 @@ function SecondUserCard({
         showSnackbar?.(!isFollowing ? `You followed ${username}` : `You unfollowed ${username}` );
       })
       .catch((err) => console.error("Follow toggle error", err));
+
+    // Refresh UI if available (e.g., followers list or profile page)
     if (refreshPosts?.fetchTabItems) await refreshPosts.fetchTabItems();
     if (refreshPosts?.fetchProfileUser) await refreshPosts.fetchProfileUser();
   };
@@ -82,7 +86,7 @@ function SecondUserCard({
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                maxWidth: sideBar ? 50 : 100, // Adjust as needed
+                maxWidth: sideBar ? 50 : 100, 
               }}
             >
               {real_name}
@@ -94,7 +98,7 @@ function SecondUserCard({
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
-                maxWidth: sideBar ? 50 : 100, // Adjust as needed
+                maxWidth: sideBar ? 50 : 100,
               }}
             >
               @{username}
@@ -133,6 +137,7 @@ function SecondUserCard({
           )
         }
       />
+      {/* Optional bio (shown only if not in sidebar) */}
       {bio && !sideBar &&(
         <Box px={2} pb={1}>
           <Typography
@@ -142,7 +147,7 @@ function SecondUserCard({
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              maxWidth: "100%", // or a fixed width if needed
+              maxWidth: "100%", 
               display: "block",
             }}
           >

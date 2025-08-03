@@ -15,7 +15,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import CircularProgress from "@mui/material/CircularProgress";
 import CustomSnackbar from "../ui/CustomSnackbar";
 
-// Styled Components
+// Styled UI Components
 const FeedContainer = styled(Box)(({ theme }) => ({
   flex: 1,
   padding: theme.spacing(2),
@@ -89,6 +89,7 @@ function MainFeed({
     setSnackbar({ open: true, message });
   };
 
+  // Infinite Scroll: Track last post element
   const lastPostRef = useCallback(
     (node) => {
       if (loading || !hasMore) return;
@@ -103,6 +104,7 @@ function MainFeed({
     [loading, hasMore]
   );
 
+  // Fetch Posts by Feed Type and Page
   const fetchPosts = async () => {
     try {
       if (page === 1) setInitialLoading(true);
@@ -122,22 +124,26 @@ function MainFeed({
     }
   };
 
+  // Reset posts when feed type changes
   useEffect(() => {
     setPosts([]);
     setPage(1);
     setHasMore(true);
   }, [feedType]);
 
+  // Fetch posts on mount or when page/feedType changes
   useEffect(() => {
     fetchPosts();
   }, [page, feedType]);
 
+  // Show scroll-to-top button
   useEffect(() => {
     const onScroll = () => setShowScrollTop(window.scrollY > 400);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Refresh feed if state flag is present (e.g., after posting or profile edit)
   useEffect(() => {
     if (location.state?.refresh) {
       // Reset post feed to page 1 and refresh
@@ -155,6 +161,7 @@ function MainFeed({
     }
   }, [location]);
 
+  // Refresh specific post after editing
   useEffect(() => {
     const postId = location.state?.editPostId;
     if (postId) {
@@ -165,6 +172,7 @@ function MainFeed({
     }
   }, [location]);
 
+  // Refresh specific post after replying
   useEffect(() => {
     const postId = location.state?.repliedToPostId;
     if (postId) {
@@ -187,6 +195,7 @@ function MainFeed({
     passHomeUsername(username);
   };
 
+  // Refresh single post (used after editing/replying)
   const refreshSinglePostById = async (postId) => {
     try {
       const res = await axiosInstance.get(`/post/${postId}`);

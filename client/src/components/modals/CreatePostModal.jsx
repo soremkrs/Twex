@@ -127,7 +127,7 @@ function CreatePostModal() {
       });
       setHide(true);
       handleClose();
-      // Navigate back to the previous page (not -1)
+      // Navigate back to the previous page
       if (backgroundLocation) {
         navigate(backgroundLocation.pathname, {
           state: { refresh: true },
