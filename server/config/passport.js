@@ -52,8 +52,8 @@ export default function configurePassport(passport) {
           // If user does not exist, create a new record
           if (!user) {
             const insert = await db.query(
-              "INSERT INTO users (username, email) VALUES ($1, $2) RETURNING *",
-              [username, email]
+              "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
+              [username, email, "google"]
             );
             user = insert.rows[0];
           }
