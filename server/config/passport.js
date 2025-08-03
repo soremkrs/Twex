@@ -11,8 +11,16 @@ export default function configurePassport(passport) {
       async (username, password, done) => {
         try {
           // Look up user by username or email in the database
-          const res = await db.query("SELECT * FROM users WHERE username = $1 OR email = $1", [username]);
+          const res = await db.query(
+            "SELECT * FROM users WHERE username = $1 OR email = $1",
+            [username]
+          );
           const user = res.rows[0];
+
+          // If user use google auth
+          if (user.auth_method === "google") {
+            return done(null, false, { message: "Please log in with Google" });
+          }
 
           // If user not found, fail authentication
           if (!user) return done(null, false, { message: "User not found" });
@@ -46,14 +54,18 @@ export default function configurePassport(passport) {
           const username = profile.displayName;
 
           // Check if user already exists in database by email
-          const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+          const result = await db.query(
+            "SELECT * FROM users WHERE email = $1",
+            [email]
+          );
           let user = result.rows[0];
 
           // If user does not exist, create a new record
           if (!user) {
+            const hashedPassword = await bcrypt.hash("google-oauth", 10);
             const insert = await db.query(
-              "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
-              [username, email, "google"]
+              "INSERT INTO users (username, email, password, auth_method) VALUES ($1, $2, $3, $4) RETURNING *",
+              [username, email, hashedPassword, "google"]
             );
             user = insert.rows[0];
           }
