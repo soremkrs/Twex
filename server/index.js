@@ -35,6 +35,8 @@ app.use(cors({ origin: process.env.ORIGIN_URL, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.set('trust proxy', 1); 
+
 // Configure session management with PostgreSQL as the storage
 app.use(
   session({
