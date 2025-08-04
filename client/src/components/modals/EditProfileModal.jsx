@@ -45,6 +45,12 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
     padding: theme.spacing(2),
     width: "800px",
     height: "800px",
+    [theme.breakpoints.down("sm")]: {
+      width: "90vw", // 90% of viewport width on small screens
+      height: "auto",
+      maxHeight: "90vh",
+      margin: "10px",
+    },
   },
   "& .MuiBackdrop-root": {
     backgroundColor: "rgba(71, 71, 71, 0.75)",
@@ -69,6 +75,12 @@ const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
   paddingTop: 0,
   width: "500px",
   margin: "auto",
+  [theme.breakpoints.down("sm")]: {
+      width: "auto", 
+      height: "auto",
+      maxHeight: "90vh",
+      margin: "10px",
+    },
 }));
 
 const StyledTextField = styled((props) => <TextField {...props} />)(
@@ -114,6 +126,9 @@ const NextButton = styled(Button)(({ theme }) => ({
   borderRadius: 30,
   width: "450px",
   padding: "5px 0px",
+  [theme.breakpoints.down("sm")]: {
+      width: "290px", 
+    },
   "&:hover": {
     backgroundColor: "#1a8cd8",
   },

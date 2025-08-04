@@ -49,6 +49,12 @@ const StyledDialogContent = styled(DialogContent)(({ theme }) => ({
   paddingTop: 0,
   width: "350px",
   margin: "auto",
+  [theme.breakpoints.down("sm")]: {
+      width: "auto", 
+      height: "auto",
+      maxHeight: "90vh",
+      margin: "10px",
+    },
 }));
 
 const StyledDialogActions = styled(DialogActions)({
@@ -64,6 +70,9 @@ const CancelButton = styled(Button)(({ theme }) => ({
   borderRadius: 30,
   width: "300px",
   padding: "5px 0px",
+  [theme.breakpoints.down("sm")]: {
+      width: "265px", 
+    },
   "&:hover": {
     backgroundColor: "#1a8cd8",
   },

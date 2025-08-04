@@ -18,6 +18,11 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import SecondUserCard from "../cards/SecondUserCard";
 import CircularProgress from "@mui/material/CircularProgress";
 import CustomSnackbar from "../ui/CustomSnackbar";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import NotesIcon from "@mui/icons-material/Notes";
+import PersonAddAltIcon from "@mui/icons-material/PersonAddAlt";
+import GroupIcon from "@mui/icons-material/Group";
 
 const ProfileContainer = styled(Box)(({ theme }) => ({
   flex: 1,
@@ -29,6 +34,9 @@ const ProfileContainer = styled(Box)(({ theme }) => ({
   borderRight: "1px solid #333",
   color: "white",
   position: "relative",
+  [theme.breakpoints.down("sm")]: {
+    width: "auto",
+  },
 }));
 
 const CustomToggleButtonGroup = styled(ToggleButtonGroup)(() => ({
@@ -214,9 +222,9 @@ function ProfileFeed({
       setHasMore(true);
       fetchProfileUser();
       if (location.state?.profileEdit) {
-        showSnackbar("Your profile was edit!")
+        showSnackbar("Your profile was edit!");
       } else {
-        showSnackbar("Your post was sent!")
+        showSnackbar("Your post was sent!");
       }
       // Clear the refresh state to avoid repeated fetches
       navigate(location.pathname, { replace: true, state: null });
@@ -227,7 +235,7 @@ function ProfileFeed({
     const postId = location.state?.editPostId;
     if (postId) {
       refreshSinglePostById(postId);
-      showSnackbar("Your post was edit!")
+      showSnackbar("Your post was edit!");
       // Clear it so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -237,7 +245,7 @@ function ProfileFeed({
     const postId = location.state?.repliedToPostId;
     if (postId) {
       refreshSinglePostById(postId);
-      showSnackbar("Your reply was sent!")
+      showSnackbar("Your reply was sent!");
       // Clear it so it doesn't trigger again
       navigate(location.pathname, { replace: true, state: null });
     }
@@ -291,7 +299,11 @@ function ProfileFeed({
         await axiosInstance.post(`/follow/${profileUser.id}`);
       }
       setIsFollowing((prev) => !prev);
-      showSnackbar(!isFollowing ? `You followed ${profileUser.username}` : `You unfollowed ${profileUser.username}` )
+      showSnackbar(
+        !isFollowing
+          ? `You followed ${profileUser.username}`
+          : `You unfollowed ${profileUser.username}`
+      );
       fetchProfileUser();
     } catch (err) {
       console.error("Follow/unfollow error:", err);
@@ -412,11 +424,54 @@ function ProfileFeed({
             onChange={handleTabChange}
             sx={{ mb: 2 }}
           >
-            <CustomToggleButton value="posts">Posts</CustomToggleButton>
-            <CustomToggleButton value="replies">Replies</CustomToggleButton>
-            <CustomToggleButton value="likes">Likes</CustomToggleButton>
-            <CustomToggleButton value="following">Following</CustomToggleButton>
-            <CustomToggleButton value="followers">Followers</CustomToggleButton>
+            <CustomToggleButton value="posts">
+              <Box display="flex" alignItems="center" justifyContent="center">
+                <NotesIcon
+                  sx={{ display: { xs: "block", md: "none" }, fontSize: 20 }}
+                />
+                <Box sx={{ display: { xs: "none", md: "block" } }}>Posts</Box>
+              </Box>
+            </CustomToggleButton>
+
+            <CustomToggleButton value="replies">
+              <Box display="flex" alignItems="center" justifyContent="center">
+                <ChatBubbleOutlineIcon
+                  sx={{ display: { xs: "block", md: "none" }, fontSize: 20 }}
+                />
+                <Box sx={{ display: { xs: "none", md: "block" } }}>Replies</Box>
+              </Box>
+            </CustomToggleButton>
+
+            <CustomToggleButton value="likes">
+              <Box display="flex" alignItems="center" justifyContent="center">
+                <FavoriteBorderIcon
+                  sx={{ display: { xs: "block", md: "none" }, fontSize: 20 }}
+                />
+                <Box sx={{ display: { xs: "none", md: "block" } }}>Likes</Box>
+              </Box>
+            </CustomToggleButton>
+
+            <CustomToggleButton value="following">
+              <Box display="flex" alignItems="center" justifyContent="center">
+                <PersonAddAltIcon
+                  sx={{ display: { xs: "block", md: "none" }, fontSize: 20 }}
+                />
+                <Box sx={{ display: { xs: "none", md: "block" } }}>
+                  Following
+                </Box>
+              </Box>
+            </CustomToggleButton>
+
+            <CustomToggleButton value="followers">
+              <Box display="flex" alignItems="center" justifyContent="center">
+                <GroupIcon
+                  sx={{ display: { xs: "block", md: "none" }, fontSize: 20 }}
+                />
+                <Box sx={{ display: { xs: "none", md: "block" } }}>
+                  Followers
+                </Box>
+              </Box>
+            </CustomToggleButton>
           </CustomToggleButtonGroup>
           {/* Tab content rendering (posts, replies, etc.) */}
           <Box>

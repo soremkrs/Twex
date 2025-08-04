@@ -49,12 +49,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use((req, res, next) => {
-  console.log("Request protocol:", req.protocol);
-  console.log("X-Forwarded-Proto:", req.headers["x-forwarded-proto"]);
-  next();
-});
-
 // Configure session management with PostgreSQL as the storage
 app.use(
   session({

@@ -2,7 +2,7 @@ import React from "react";
 import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 
-const CustomButton = styled(Button)({
+const CustomButton = styled(Button)(({ theme }) => ({
   fontSize: "1.025rem",
   fontWeight: "525",
   width: "300px",
@@ -11,10 +11,13 @@ const CustomButton = styled(Button)({
   color: "white",
   borderRadius: "30px",
   textTransform: "none",
+  [theme.breakpoints.down("sm")]: {
+      width: "265px", 
+    },
   "&:hover": {
       backgroundColor: "#2f8ceb",
   },
-});
+}));
 
 function CreateAccountButton(props) {
   return (

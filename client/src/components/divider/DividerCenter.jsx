@@ -8,6 +8,9 @@ const CustomDivider = styled(Divider)(({ theme }) => ({
   borderColor: "#444", 
   fontSize: "0.9rem",
   fontWeight: 500,
+  [theme.breakpoints.down("sm")]: {
+      width: "265px", 
+    },
   "&::before, &::after": {
     borderColor: "#444",
   },

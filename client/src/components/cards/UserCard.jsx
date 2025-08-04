@@ -11,7 +11,7 @@ function UserCard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md")); // Responsive layout check
 
-  const { user, loading, logout } = useAuth();  // Auth context values
+  const { user, loading, logout } = useAuth(); // Auth context values
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -44,7 +44,7 @@ function UserCard() {
   if (loading) {
     return <LoadingModal Open={loading} Message="Editing profile..." />;
   } else if (!user) {
-    return null;  // Avoid rendering if user isn't loaded
+    return null; // Avoid rendering if user isn't loaded
   } else {
     return (
       <>
@@ -107,29 +107,33 @@ function UserCard() {
               overflow: "visible",
               position: "absolute",
               // Custom arrow styling
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: "calc(50% - 6px)",
-                width: 12,
-                height: 12,
-                backgroundColor: "#000",
-                transform: "translateY(675%) rotate(45deg)",
-                zIndex: 0,
-                boxShadow: "0 0 10px 5px rgba(255, 255, 255, 0.39)",
-              },
-              "&::after": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: "calc(50% - 20px)",
-                width: "40px",
-                height: "15px",
-                backgroundColor: "#000",
-                transform: "translateY(480%) rotate(180deg)",
-                zIndex: 1,
-              },
+              ...(isMobile
+                ? {} // No arrows on mobile
+                : {
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: "calc(50% - 6px)",
+                      width: 12,
+                      height: 12,
+                      backgroundColor: "#000",
+                      transform: "translateY(675%) rotate(45deg)",
+                      zIndex: 0,
+                      boxShadow: "0 0 10px 5px rgba(255, 255, 255, 0.39)",
+                    },
+                    "&::after": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: "calc(50% - 20px)",
+                      width: "40px",
+                      height: "15px",
+                      backgroundColor: "#000",
+                      transform: "translateY(480%) rotate(180deg)",
+                      zIndex: 1,
+                    },
+                  }),
             },
           }}
         >

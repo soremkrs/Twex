@@ -3,7 +3,7 @@ import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import GoogleIcon from "../../assets/google-icon.svg";
 
-const CustomButton = styled(Button)({
+const CustomButton = styled(Button)(({ theme }) => ({
   fontSize: "1.025rem",
   fontWeight: "525",
   width: "300px",
@@ -13,10 +13,13 @@ const CustomButton = styled(Button)({
   color: "black",
   borderRadius: "40px",
   textTransform: "none",
+  [theme.breakpoints.down("sm")]: {
+      width: "265px", 
+    },
   "&:hover": {
       backgroundColor: "#EEEEEE",
   },
-});
+}));
 
 function OAuthButton(props) {
   return (
