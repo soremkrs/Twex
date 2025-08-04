@@ -30,19 +30,20 @@ const pgSession = connectPgSimple(session); // Initialize session store with Pos
 
 app.set("trust proxy", 1);
 
-// Enable CORS with credentials for frontend-backend communication
-app.use(cors({ origin: process.env.ORIGIN_URL, credentials: true }));
+const allowedOrigins = [process.env.ORIGIN_URL];
 
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header("Access-Control-Allow-Origin", process.env.ORIGIN_URL);
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Set-Cookie, Cookie"
-  );
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  next();
-});
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 // Middleware to parse incoming JSON and URL-encoded payloads
 app.use(express.json());
