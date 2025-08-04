@@ -84,10 +84,16 @@ router.get(
   }
 );
 
-
 // Route: Check if user is logged in - returns user info or null
 router.get("/check", (req, res) => {
-  res.status(200).json({ user: req.user || null });
+  if (req.isAuthenticated()) {
+    // 🔄 This refreshes the session and sets the cookie again
+    req.session.save(() => {
+      res.status(200).json({ user: req.user });
+    });
+  } else {
+    res.status(200).json({ user: null });
+  }
 });
 
 export default router;

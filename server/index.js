@@ -28,18 +28,29 @@ const app = express();
 const port = process.env.PORT;
 const pgSession = connectPgSimple(session); // Initialize session store with PostgreSQL
 
+app.set("trust proxy", 1);
+
 // Enable CORS with credentials for frontend-backend communication
 app.use(cors({ origin: process.env.ORIGIN_URL, credentials: true }));
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Origin", process.env.ORIGIN_URL);
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Set-Cookie, Cookie"
+  );
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  next();
+});
 
 // Middleware to parse incoming JSON and URL-encoded payloads
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.set('trust proxy', true); 
-
 app.use((req, res, next) => {
-  console.log('Request protocol:', req.protocol);
-  console.log('X-Forwarded-Proto:', req.headers['x-forwarded-proto']);
+  console.log("Request protocol:", req.protocol);
+  console.log("X-Forwarded-Proto:", req.headers["x-forwarded-proto"]);
   next();
 });
 
